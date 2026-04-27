@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="google" content="notranslate">
+    <title>Dashboard Template</title>
+
+    <!-- ✅ PWA: Meta Tags & Manifest -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#00bfff">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Template Sistem">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+
+    <!-- Google Fonts -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;700&family=Inter:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <!-- Phosphor Icons (Alternative to Lucide for consistency) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <!-- Background Particles Container -->
+    <div id="particles-js"></div>
+
+    <!-- Toast Container for Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <div class="app-container">
+        <!-- Header (Clickable as Back to Home) -->
+        <header class="top-header mb-2" style="display: flex; justify-content: space-between; align-items: center;">
+            <div style="cursor: pointer;" id="headerLogoHome">
+                <h1
+                    style="font-size:1.5rem; font-weight:700; margin:0; letter-spacing:0.04em; color: var(--neon-cyan); font-family:'Inter',sans-serif;">
+                    Dashboard Template Sistem</h1>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <button id="adminLoginBtn" class="cyber-toggle" title="Admin Hub" onclick="openAdminLoginModal()" style="color: var(--neon-purple); border-color: var(--neon-purple);">
+                    <i class="ph ph-shield-check"></i>
+                </button>
+                <button id="desktopToggleBtn" class="cyber-toggle" title="Toggle Desktop View" onclick="toggleDesktopMode()">
+                    <i class="ph ph-monitor"></i>
+                </button>
+                <button id="themeToggleBtn" class="cyber-toggle" title="Core Override (Theme Switcher)">
+                    <i class="ph ph-moon-stars"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Marquee Notification untuk Request Layout -->
+        <div id="layoutMarqueeContainer" class="hidden"
+            style="background: rgba(255,0,0,0.1); border: 1px solid red; border-radius: 4px; padding: 2px 8px; margin: 0 1rem -0.5rem 1rem; height: 22px; overflow: hidden; display: flex; align-items: center; position: relative; z-index: 10;">
+            <marquee behavior="scroll" direction="left" scrollamount="4" loop="infinite" id="layoutMarqueeText"
+                style="color: red; font-size: 0.7rem; font-weight: bold; margin-bottom: 0; width: 100%; white-space: nowrap;">
+            </marquee>
+        </div>
+
+        <!-- Main Content Area -->
+        <main class="content-scroll">
+
+            <!-- 1. VIEW: DASHBOARD (HOME) -->
+            <div id="view-dashboard" class="tab-view active">
+                <div class="search-container mb-2" style="display: flex; gap: 0.5rem;">
+                    <button class="action-btn purple-outline" style="padding: 0.6rem 1rem; flex: 1;"
+                        onclick="document.getElementById('startCameraBtn').click()">
+                        <i class="ph ph-magnifying-glass" style="font-size:1.2rem;"></i> Smart Search
+                    </button>
+                    <button class="action-btn" id="btnGoPerformance" 
+                        style="padding: 0.6rem 1rem; flex: 1; background: rgba(255, 184, 0, 0.1); border: 1px solid #f59e0b; color: #f59e0b;">
+                        <i class="ph ph-gauge" style="font-size:1.2rem;"></i> Performance
+                    </button>
+                </div>
+
+                <div class="stats-grid mb-2">
+                    <div class="stat-card" style="border-color: rgba(14, 165, 233, 0.5);">
+                        <span class="stat-label" style="color: #0ea5e9;"><i class="ph ph-clock"></i> TOTAL SMV</span>
+                        <div class="stat-value" id="dashTotalSmv"
+                            style="font-size: 1.6rem; color: #0ea5e9; font-weight: bold;">0</div>
+                    </div>
+                    <div class="stat-card" style="border-color: rgba(245, 158, 11, 0.5);">
+                        <span class="stat-label" style="color: #f59e0b;"><i class="ph ph-check-circle"></i> TOTAL
+                            ACTUAL</span>
+                        <div class="stat-value" id="dashTotalActual"
+                            style="font-size: 1.6rem; color: #f59e0b; font-weight: bold;">0</div>
+                    </div>
+                    <div class="stat-card glow-card" style="border-color: rgba(16, 185, 129, 0.5);">
+                        <span class="stat-label" style="color: #10b981;"><i class="ph ph-trend-up"></i> TOTAL
+                            SAVING</span>
+                        <div class="stat-value" id="dashTotalSaving"
+                            style="font-size: 1.6rem; color: #10b981; font-weight: bold;">0</div>
+                    </div>
+                </div>
+
+                <section class="dashboard-card mt-4">
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem;">
+                        <h2 class="card-title text-cyan" style="margin: 0; padding-top: 0.2rem;">Template In-Line</h2>
+
+                        <!-- Mini Cards dipindah ke samping judul -->
+                        <div style="display: flex; gap: 0.4rem; flex: 1; justify-content: flex-end;">
+                            <div
+                                style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.3); border-radius: 6px; padding: 0.2rem 0.4rem; text-align: center; min-width: 50px;">
+                                <div style="font-size: 0.5rem; color: #ef4444; font-weight: 600;">NOT USED</div>
+                                <div id="dashNotUsed"
+                                    style="font-size: 0.65rem; color: #ef4444; font-weight: bold; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;"
+                                    title="-">-</div>
+                            </div>
+                            <div
+                                style="background: rgba(148, 163, 184, 0.1); border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 6px; padding: 0.2rem 0.4rem; text-align: center; min-width: 50px;">
+                                <div style="font-size: 0.5rem; color: #94a3b8; font-weight: 600;">NO PROCESS</div>
+                                <div id="dashNoProcess"
+                                    style="font-size: 0.65rem; color: #94a3b8; font-weight: bold; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 60px;"
+                                    title="-">-</div>
+                            </div>
+                            <div
+                                style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 0.2rem 0.4rem; text-align: center; min-width: 50px; box-shadow: 0 0 8px rgba(16, 185, 129, 0.2);">
+                                <div style="font-size: 0.5rem; color: #10b981; font-weight: 600;">RATE</div>
+                                <div id="dashRate"
+                                    style="font-size: 0.8rem; color: #10b981; font-weight: bold; line-height: 1.2;">0%
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container"><canvas id="templateChart"></canvas></div>
+                    <button class="action-btn outline-btn mt-4 w-full" id="btnGoTemplate">
+                        <i class="ph ph-grid-four"></i> Template In-Line
+                    </button>
+                    <button class="action-btn w-full mt-4" id="btnGoIeUpdate"
+                        style="background:rgba(0, 191, 255, 0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                        <i class="ph ph-pencil-line"></i> FOR IE UPDATE
+                    </button>
+                    <div class="text-center mt-2" style="font-size:0.75rem; color:var(--neon-purple);">
+                        <span class="status-dot blink"></span> data online
+                    </div>
+                </section>
+
+                <section class="dashboard-card mt-4">
+                    <h2 class="card-title text-cyan">Factory Data</h2>
+                    <div class="chart-container"><canvas id="factoryChart"></canvas></div>
+                    <div class="action-grid mt-4">
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <button class="action-btn outline-btn" id="btnGoFactoryA"><i class="ph ph-factory"></i>
+                                Factory A</button>
+                            <div class="text-center"
+                                style="font-size:0.7rem; color:var(--neon-purple); letter-spacing:1px;">
+                                <span class="status-dot blink"></span> data online
+                            </div>
+                        </div>
+                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                            <button class="action-btn outline-btn" id="btnGoFactoryB"><i class="ph ph-factory"></i>
+                                Factory B</button>
+                            <div class="text-center"
+                                style="font-size:0.7rem; color:var(--neon-purple); letter-spacing:1px;">
+                                <span class="status-dot blink"></span> data online
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="dashboard-card mt-4">
+                    <div class="action-grid">
+                        <button class="action-btn purple-outline" id="btnNewReqIE"><i class="ph ph-plus"></i> New
+                            Request (IE)</button>
+                        <button class="action-btn purple-outline" id="btnNewReqSewing"><i class="ph ph-plus"></i>
+                            Request (Sewing)</button>
+                    </div>
+                </section>
+
+                <!-- Admin Dashboard Controls Removed, Replaced by Dedicated Admin Panel -->
+
+                <!-- Desktop Navigation Panel (Hanya muncul di Desktop Mode) -->
+                <div class="desktop-nav-panel">
+                    <a href="https://wa.me/6281311510303" target="_blank" class="nav-card-btn" title="Support Command">
+                        <i class="ph ph-headset"></i>
+                        <span>Support</span>
+                    </a>
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-activity').click()" title="Data Logs">
+                        <i class="ph ph-terminal-window"></i>
+                        <span>Logs</span>
+                    </div>
+                    <div class="nav-card-btn" onclick="document.getElementById('startCameraBtn').click()" title="Scanner Override">
+                        <i class="ph ph-radar"></i>
+                        <span>Scanner</span>
+                    </div>
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-inventory').click()" title="Inventory Matrix">
+                        <i class="ph ph-cube"></i>
+                        <span>Inventory</span>
+                    </div>
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-archive').click()" title="Archive Template">
+                        <i class="ph ph-archive"></i>
+                        <span>Archive</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 9. VIEW: TOP PERFORMANCE -->
+            <div id="view-performance" class="tab-view hidden">
+                <section class="dashboard-card" style="border-color: #f59e0b;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <div style="display:flex; flex-direction:column; align-items:center;">
+                            <div style="color: #f59e0b; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px;">
+                                <i class="ph ph-gauge"></i> PERFORMANCE
+                            </div>
+                            <select id="filterMonthPerf" class="smart-input" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: 24px; width: 120px; margin-top: 0.3rem;" onchange="renderPerformanceStats()">
+                                <option value="All">Semua Waktu</option>
+                            </select>
+                        </div>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:#f59e0b; font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+
+                    <!-- SUB-TABS NAVIGATION -->
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:0.3rem;">
+                        <button id="btnPerfGeneral" onclick="switchPerfTab('general')" 
+                            style="background:none; border:none; color:#f59e0b; font-weight:700; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid #f59e0b; cursor:pointer; font-family:inherit;">
+                            GENERAL STATUS
+                        </button>
+                        <button id="btnPerfSaving" onclick="switchPerfTab('saving')" 
+                            style="background:none; border:none; color:var(--text-dim); font-weight:600; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit;">
+                            SAVING ANALYSIS
+                        </button>
+                    </div>
+
+                    <!-- PANEL: GENERAL STATUS -->
+                    <div id="panelPerfGeneral">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+                            <!-- Top Running -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-green);">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-green); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-trend-up"></i> Top Running
+                                </div>
+                                <div id="rankRunning" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Top Not Used -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-red);">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-red); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-warning"></i> Sering Not Used
+                                </div>
+                                <div id="rankNotUsed" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Top No Process -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--text-dim);">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-dim); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-minus-circle"></i> Sering No Process
+                                </div>
+                                <div id="rankNoProcess" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Top Request Layout -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid #ea580c;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:#ea580c; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-layout"></i> Top Request Layout
+                                </div>
+                                <div id="rankLayoutReq" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Line Tanpa Running -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-purple); grid-column: 1 / -1;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-purple); font-size:0.85rem; font-weight:bold; margin-bottom:0.5rem;">
+                                    <i class="ph ph-ghost"></i> Line Tanpa Running
+                                </div>
+                                <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.8rem;">
+                                    Tidak pernah Running di periode ini — perlu investigasi
+                                </div>
+                                <div id="listLineIdle" style="display:flex; flex-wrap:wrap; gap:0.4rem;">
+                                    <div style="color:var(--neon-green); font-size:0.75rem;">Semua line pernah Running.</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- PANEL: SAVING ANALYSIS -->
+                    <div id="panelPerfSaving" class="hidden">
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+                            <!-- Average Saving % -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-cyan);">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-cyan); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-chart-line-up"></i> Consistency (Avg %)
+                                </div>
+                                <div id="rankAvgSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Total Minutes Saved -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-blue);">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-blue); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-hourglass-high"></i> Contribution (Total Min)
+                                </div>
+                                <div id="rankTotalSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+
+                            <!-- Peak Record % -->
+                            <div class="glass-card" style="padding:1rem; border-top:3px solid #a855f7;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; color:#a855f7; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                    <i class="ph ph-lightning"></i> Peak Record (Highest %)
+                                </div>
+                                <div id="rankPeakSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
+                                    <div style="color:var(--text-dim); font-size:0.75rem;">Menghitung data...</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 2. VIEW: TEMPLATE IN-LINE -->
+            <div id="view-template" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-green); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-cyan">
+                        <span><i class="ph ph-grid-four"></i> Template In-Line Data</span>
+                    </h2>
+                    <div id="templateCardArea">
+                    <div id="dashboardTableArea" class="table-responsive">
+                        <table id="tblTemplate">
+                            <thead>
+                                <tr>
+                                    <th>Line</th>
+                                    <th>Style</th>
+                                    <th>Proses</th>
+                                    <th>Status</th>
+                                    <th style="min-width:50px; text-align:center;">SMV</th>
+                                    <th style="min-width:50px; text-align:center;">Actual</th>
+                                    <th style="min-width:50px; text-align:center;">Saving</th>
+                                    <th style="min-width:50px; text-align:center;">Rate</th>
+                                    <th style="text-align:center; min-width:70px;">Video B</th>
+                                    <th style="text-align:center; min-width:70px;">Video A</th>
+                                    <th style="text-align:center; min-width:90px;">Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="11" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    </div><!-- close templateCardArea -->
+                </section>
+            </div>
+
+            <!-- 3. VIEW: FACTORY A -->
+            <div id="view-factoryA" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-green); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-green"><i class="ph ph-factory"></i> Factory A Lines (1-12)</h2>
+                    <div class="chart-container"><canvas id="chartFactoryA"></canvas></div>
+                    <div class="grid-cols-3 mt-4" id="gridFactoryA">
+                        <!-- Buttons injected via JS -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- 4. VIEW: FACTORY B -->
+            <div id="view-factoryB" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-green); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-green"><i class="ph ph-factory"></i> Factory B Lines (13-22)</h2>
+                    <div class="chart-container"><canvas id="chartFactoryB"></canvas></div>
+                    <div class="grid-cols-3 mt-4" id="gridFactoryB">
+                        <!-- Buttons injected via JS -->
+                    </div>
+                </section>
+            </div>
+
+            <!-- 5. VIEW: ACTIVITY LOG -->
+            <div id="view-activity" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-cyan); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-cyan"><i class="ph ph-clipboard-text"></i> Activity Log Dashboard</h2>
+                    
+                    <!-- SUB-TAB LOG NAVIGATION -->
+                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.3rem;">
+                        <button id="btnLogIE" onclick="switchLogTab('IE')" 
+                            style="background:none; border:none; color:var(--neon-cyan); font-weight:700; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid var(--neon-cyan); cursor:pointer; font-family:inherit;">
+                            IE HISTORY
+                        </button>
+                        <button id="btnLogSewing" onclick="switchLogTab('Sewing')" 
+                            style="background:none; border:none; color:var(--text-dim); font-weight:600; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit;">
+                            SEWING HISTORY
+                        </button>
+                    </div>
+
+                    <!-- AREA 1: IE HISTORY -->
+                    <div id="panelLogIE" class="table-responsive">
+                        <table id="tblLogIE">
+                            <thead>
+                                <tr>
+                                    <th>Style</th>
+                                    <th>Line</th>
+                                    <th>Proses</th>
+                                    <th>Tgl Layout</th>
+                                    <th>Status</th>
+                                    <th>Status Template</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- AREA 2: SEWING HISTORY -->
+                    <div id="panelLogSewing" class="table-responsive hidden">
+                        <table id="tblLogSewing">
+                            <thead>
+                                <tr>
+                                    <th>Style</th>
+                                    <th>Line</th>
+                                    <th>Proses</th>
+                                    <th>Keterangan</th>
+                                    <th>Status</th>
+                                    <th>Status Template</th>
+                                    <th>Timestamp</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 6. VIEW: INVENTORY -->
+            <div id="view-inventory" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-green); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-cyan"><i class="ph ph-package"></i> Inventory Master</h2>
+
+                    <!-- Inventory Summary Stats (Compact) -->
+                    <div id="invSummaryDash" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.4rem; margin-bottom:1rem;">
+                        <div class="inv-stat-card" style="background:rgba(79,70,229,0.08); border:1px solid rgba(79,70,229,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Buyer</div>
+                            <div id="invStatBuyerCount" style="font-size:1.1rem; font-weight:800; color:#818cf8;">0</div>
+                            <div id="invStatBuyerList" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        </div>
+                        <div class="inv-stat-card" style="background:rgba(0,191,255,0.06); border:1px solid rgba(0,191,255,0.2); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Style Code</div>
+                            <div id="invStatCodeCount" style="font-size:1.1rem; font-weight:800; color:var(--neon-cyan);">0</div>
+                            <div id="invStatCodeDetail" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        </div>
+                        <div class="inv-stat-card" style="background:rgba(13,148,136,0.08); border:1px solid rgba(13,148,136,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Proses</div>
+                            <div id="invStatProsesCount" style="font-size:1.1rem; font-weight:800; color:#0d9488;">0</div>
+                            <div id="invStatProsesTotal" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        </div>
+                        <div class="inv-stat-card" style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Size</div>
+                            <div id="invStatSizeCount" style="font-size:1.1rem; font-weight:800; color:#a855f7;">0</div>
+                            <div id="invStatSizeList" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        </div>
+                        <div class="inv-stat-card" style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Total Qty</div>
+                            <div id="invStatTotalQty" style="font-size:1.1rem; font-weight:800; color:#f59e0b;">0</div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="tblInventory">
+                            <thead>
+                                <tr>
+                                    <th>No</th>
+                                    <th>Tanggal Pembuatan</th>
+                                    <th>Buyer</th>
+                                    <th>Style</th>
+                                    <th>Process Template</th>
+                                    <th>Jumlah</th>
+                                    <th>Status</th>
+                                    <th>Posisi</th>
+                                    <th>Size</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="10" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 7. VIEW: TOOLS IE — DISEMBUNYIKAN, DIGANTIKAN ARCHIVE -->
+            <div id="view-tools" class="tab-view hidden" style="display:none !important;"></div>
+
+            <!-- ADMIN PANEL (DEDICATED VIEW) -->
+            <div id="view-admin-panel" class="tab-view hidden">
+                <section class="dashboard-card" style="border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(217,70,239,0.15);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="switchView('view-dashboard')" title="Kembali"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh" style="color:var(--neon-purple); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title" style="color: var(--neon-purple); font-size: 1.5rem; margin-bottom: 2rem;"><i class="ph ph-shield-check"></i> Admin Hub</h2>
+
+                    <!-- Admin Actions -->
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
+                        <button class="action-btn" onclick="openPengumumanModal()" style="flex: 1; padding: 1rem; background: rgba(0,191,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                            <i class="ph ph-megaphone" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i> Set Pengumuman
+                        </button>
+                    </div>
+
+                    <!-- Layout Requests -->
+                    <h3 style="color: var(--neon-purple); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(217,70,239,0.3); padding-bottom: 0.5rem;"><i class="ph ph-bell-ringing"></i> Antrean Layout</h3>
+                    <div class="table-responsive" style="margin-bottom: 2rem;">
+                        <table id="tblAdminRequest">
+                            <thead>
+                                <tr>
+                                    <th>Waktu</th>
+                                    <th>Line</th>
+                                    <th>Style</th>
+                                    <th style="text-align:center;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- WhatsApp Sharing -->
+                    <h3 style="color: #25d366; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(37,211,102,0.3); padding-bottom: 0.5rem;"><i class="ph ph-whatsapp-logo"></i> Share ke WhatsApp</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem;">
+                        <button class="action-btn" onclick="shareTextWA('ALL')" style="padding: 0.8rem; background: rgba(37,211,102,0.1); border: 1px solid #25d366; color: #25d366; width: 100%;">
+                            <i class="ph ph-share-network"></i> Share Semua Template In-Line
+                        </button>
+                        <div id="waShareLineContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; width: 100%;">
+                            <!-- Diisi oleh JS -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 8. VIEW: ARCHIVE TEMPLATE (MENGGANTIKAN TOOLS IE) -->
+            <div id="view-archive" class="tab-view hidden">
+                <section class="dashboard-card" style="border-color: #10b981;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:#10b981; font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-green"
+                        style="color: #10b981; display:flex; align-items:center; justify-content:space-between; width:100%;">
+                        <span><i class="ph ph-archive"></i> Archive Dashboard</span>
+                        <button id="btnIELoginArchive" class="action-btn outline-btn"
+                            style="padding: 0.2rem 0.5rem; font-size: 0.65rem; border-color: #10b981; color: #10b981; display:none;"
+                            onclick="openIeLoginModal()">
+                            <i class="ph ph-lock-key"></i> For IE
+                        </button>
+                    </h2>
+
+                    <!-- TAB SWITCHER -->
+                    <div style="display:flex; gap:0; border-bottom:2px solid rgba(16,185,129,0.3); margin-bottom:1rem;">
+                        <button id="tabArchiveProd" onclick="switchArchiveTab('production')"
+                            style="flex:1; padding:0.5rem; background:rgba(16,185,129,0.15); border:none; border-bottom:3px solid #10b981; color:#10b981; font-weight:700; font-size:0.8rem; cursor:pointer; font-family:inherit;">
+                            <i class="ph ph-factory"></i> Archive Production
+                        </button>
+                        <button id="tabArchiveTmpl" onclick="switchArchiveTab('template')"
+                            style="flex:1; padding:0.5rem; background:transparent; border:none; border-bottom:3px solid transparent; color:var(--text-dim); font-weight:600; font-size:0.8rem; cursor:pointer; font-family:inherit;">
+                            <i class="ph ph-files"></i> Archive Template
+                        </button>
+                    </div>
+
+                    <!-- PANEL: ARCHIVE PRODUCTION -->
+                    <div id="panelArchiveProd">
+                        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:0.75rem;">
+                            Riwayat semua update produksi — diurutkan berdasarkan waktu terbaru.</p>
+                        <div
+                            style="margin-bottom:0.75rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                            <div style="flex:1; min-width:140px; display:flex; align-items:center; gap:0.5rem;">
+                                <label
+                                    style="font-size:0.75rem; color:var(--text-dim); white-space:nowrap;">Line:</label>
+                                <select id="archiveLineFilter" class="form-select"
+                                    style="padding:0.3rem 0.5rem; font-size:0.8rem;"
+                                    onchange="renderArchiveProductionTable()">
+                                    <option value="">Semua</option>
+                                </select>
+                            </div>
+                            <div style="flex:1; min-width:140px; display:flex; align-items:center; gap:0.5rem;">
+                                <label
+                                    style="font-size:0.75rem; color:var(--text-dim); white-space:nowrap;">Tanggal:</label>
+                                <input type="date" id="archiveDateFilter" class="smart-input"
+                                    style="padding:0.3rem 0.5rem; font-size:0.8rem;"
+                                    onchange="renderArchiveProductionTable()">
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table id="tblArchiveProduction">
+                                <thead>
+                                    <tr style="font-size:0.75rem;">
+                                        <th style="min-width:80px;">Timestamp</th>
+                                        <th>Line</th>
+                                        <th>Style</th>
+                                        <th>Proses</th>
+                                        <th>Status</th>
+                                        <th style="text-align:center;">SMV</th>
+                                        <th style="text-align:center;">Actual</th>
+                                        <th style="text-align:center;">Saving</th>
+                                        <th style="text-align:center;">Rate</th>
+                                        <th style="text-align:center; min-width:70px;">Video B</th>
+                                        <th style="text-align:center; min-width:70px;">Video A</th>
+                                        <th class="admin-only hidden" style="text-align:center; min-width:100px;">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="11" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- PANEL: ARCHIVE TEMPLATE -->
+                    <div id="panelArchiveTmpl" style="display:none;">
+                        <p style="font-size:0.75rem; color:var(--text-dim); margin-bottom:1rem;">
+                            Status master data terkini dari seluruh basis data Archive Template.</p>
+
+                        <!-- SUMMARY CARDS -->
+                        <div
+                            style="display:grid; grid-template-columns: repeat(3, 1fr); gap:0.5rem; margin-bottom:1.5rem;">
+                            <div
+                                style="background:rgba(0,183,255,0.05); border:1px solid rgba(0,183,255,0.3); padding:0.75rem; border-radius:8px; text-align:center;">
+                                <div style="font-size:0.6rem; color:var(--text-dim); text-transform:uppercase;">Total
+                                    SMV</div>
+                                <div id="tmplTotalSmv"
+                                    style="font-size:1.1rem; font-weight:bold; color:var(--neon-blue);">0</div>
+                            </div>
+                            <div
+                                style="background:rgba(245,158,11,0.05); border:1px solid rgba(245,158,11,0.3); padding:0.75rem; border-radius:8px; text-align:center;">
+                                <div style="font-size:0.6rem; color:var(--text-dim); text-transform:uppercase;">Total
+                                    Actual</div>
+                                <div id="tmplTotalActual" style="font-size:1.1rem; font-weight:bold; color:#f59e0b;">0
+                                </div>
+                            </div>
+                            <div
+                                style="background:rgba(16,185,129,0.05); border:1px solid rgba(16,185,129,0.3); padding:0.75rem; border-radius:8px; text-align:center;">
+                                <div style="font-size:0.6rem; color:var(--text-dim); text-transform:uppercase;">Total
+                                    Saving</div>
+                                <div id="tmplTotalSaving"
+                                    style="font-size:1.1rem; font-weight:bold; color:var(--neon-green);">0</div>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table id="tblArchiveTemplate">
+                                <thead>
+                                    <tr style="font-size:0.75rem;">
+                                        <th>Style</th>
+                                        <th>Proses</th>
+                                        <th>Status</th>
+                                        <th style="text-align:center;">SMV</th>
+                                        <th style="text-align:center;">Actual</th>
+                                        <th style="text-align:center;">Saving</th>
+                                        <th style="text-align:center;">Rate</th>
+                                        <th style="text-align:center; min-width:70px;">Video B</th>
+                                        <th style="text-align:center; min-width:70px;">Video A</th>
+                                        <th style="text-align:center; min-width:80px;">Update Terakhir</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="11" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </section>
+            </div>
+            <!-- 8. VIEW: SEARCH RESULTS PULL-OUT -->
+            <!-- 8. VIEW: IE EDITOR (Dedicated for Updating) -->
+            <div id="view-ie-editor" class="tab-view hidden">
+                <section class="dashboard-card" style="border-color: var(--neon-cyan);">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-cyan); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
+                    </div>
+                    <h2 class="card-title text-cyan"><i class="ph ph-pencil-line"></i> IE Internal Editor</h2>
+                    <p style="font-size: 0.75rem; color: var(--text-dim); margin-top: -0.5rem; margin-bottom: 0.75rem;">
+                        Pilih baris di bawah untuk memperbarui Data SMV, Actual, dan Link Video.</p>
+
+                    <!-- 🎥 VIDEO UPLOAD TOOL -->
+                    <div class="video-upload-panel" id="videoUploadPanel">
+                        <div class="upload-title"><i class="ph ph-video-camera"></i> Upload Video ke Drive</div>
+                        
+                        <div class="upload-row">
+                            <input type="text" class="upload-input" id="videoUploadName" placeholder="Nama video, misal: seam collar Line 5" autocomplete="off">
+                        </div>
+                        
+                        <div class="upload-row">
+                            <label class="upload-file-label" for="videoUploadFile">
+                                <i class="ph ph-file-video"></i> Pilih File
+                            </label>
+                            <input type="file" id="videoUploadFile" accept="video/*" style="display:none;" onchange="onVideoFileSelected(this)">
+                            <span class="upload-file-info" id="videoFileInfo">Belum ada file dipilih</span>
+                        </div>
+                        
+                        <div class="upload-row">
+                            <button class="upload-btn" id="btnStartUpload" onclick="handleVideoUpload()" disabled>
+                                <i class="ph ph-cloud-arrow-up"></i> Upload
+                            </button>
+                        </div>
+                        
+                        <div class="upload-progress-bar" id="uploadProgressBar">
+                            <div class="progress-fill" id="uploadProgressFill"></div>
+                        </div>
+                        <div class="upload-progress-text" id="uploadProgressText"></div>
+                        
+                        <div class="upload-result-box" id="uploadResultBox">
+                            <div class="result-label"><i class="ph ph-check-circle"></i> Upload Berhasil!</div>
+                            <input type="text" class="result-link-input" id="uploadResultLink" readonly onclick="this.select()">
+                            <div class="result-actions">
+                                <button class="btn-copy-link" id="btnCopyUploadLink" onclick="copyUploadedVideoLink()">
+                                    <i class="ph ph-copy"></i> Copy Link
+                                </button>
+                                <button class="btn-preview-link" onclick="previewUploadedVideo()">
+                                    <i class="ph ph-play-circle"></i> Preview
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="upload-history" id="uploadHistoryArea" style="display:none;">
+                            <div class="history-title"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Upload Sesi Ini</div>
+                            <div id="uploadHistoryList"></div>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table id="tblIeEditor">
+                            <thead>
+                                <tr>
+                                    <th>Line</th>
+                                    <th>Style</th>
+                                    <th>Proses</th>
+                                    <th style="text-align:center;">SMV</th>
+                                    <th style="text-align:center;">Actual</th>
+                                    <th style="text-align:center;">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="6" class="text-center">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div id="view-search-results" class="tab-view hidden">
+                <section class="dashboard-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
+                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                    </div>
+                    <h2 class="card-title text-green"><i class="ph ph-magnifying-glass"></i> Hasil Pencarian</h2>
+                    <div id="fullPageResultList" style="margin-top:1rem;"></div>
+                </section>
+            </div>
+
+            <!-- 11. VIEW: ADMIN REQUEST LAYOUT -->
+            <div id="view-admin-request" class="tab-view hidden admin-only">
+                <section class="dashboard-card" style="border-color: #dc2626;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="card-title" style="margin: 0; color: #dc2626;"><i class="ph ph-bell-ringing"></i> Request Layout (Antrean)</h2>
+                        <button class="action-btn outline-btn" onclick="document.getElementById('nav-dashboard').click()"
+                            style="padding:0.4rem 0.8rem;"><i class="ph ph-arrow-left"></i></button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="tblAdminRequest">
+                            <thead>
+                                <tr><th>Jam</th><th>Line</th><th>Style</th><th>Aksi</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="4" class="text-center">Memuat data live dari server...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <!-- 12. VIEW: ADMIN REPORT -->
+            <div id="view-admin-report" class="tab-view hidden admin-only">
+                <section class="dashboard-card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="card-title text-cyan" style="margin:0;"><i class="ph ph-chart-bar"></i> Laporan Produksi & Log</h2>
+                        <button class="action-btn outline-btn" onclick="document.getElementById('nav-dashboard').click()"
+                            style="padding:0.4rem 0.8rem;"><i class="ph ph-arrow-left"></i></button>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="tblAdminReport">
+                            <thead>
+                                <tr><th>Waktu Selesai</th><th>Line</th><th>Style</th><th>Proses</th><th>Actual</th><th>Durasi</th></tr>
+                            </thead>
+                            <tbody>
+                                <tr><td colspan="6" class="text-center">Memuat data live dari server...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+
+            <div class="bottom-spacer" style="height: 100px;"></div>
+        </main>
+
+        <!-- Floating Bottom Navigation -->
+        <nav class="floating-nav">
+            <div class="nav-container">
+                <a href="https://wa.me/6281311510303" target="_blank" class="nav-item" title="Support Command"><i
+                        class="ph ph-headset"></i></a>
+                <button class="nav-item" id="nav-activity" title="Data Logs"><i
+                        class="ph ph-terminal-window"></i></button>
+
+                <button class="nav-item scan-btn" id="startCameraBtn" title="Scanner Override">
+                    <i class="ph ph-radar"></i>
+                </button>
+
+                <button class="nav-item" id="nav-inventory" title="Inventory Matrix"><i class="ph ph-cube"></i></button>
+                <button class="nav-item" id="nav-archive" title="Archive Template"><i
+                        class="ph ph-archive"></i></button>
+            </div>
+        </nav>
+
+        <!-- Router Bridge (Required for 'Back' buttons) -->
+        <button id="nav-dashboard" class="hidden"></button>
+    </div>
+
+    <!-- MODAL 1: SMART SEARCH (Text & Scan) -->
+    <div id="smartSearchModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="ph ph-magnifying-glass"></i> Smart Search</h3>
+                <button class="close-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="search-tabs"
+                style="display:flex; margin-bottom:1.5rem; border-bottom:1px solid rgba(255,255,255,0.1);">
+                <button id="tabScan" class="tab-btn"
+                    style="flex:1; padding:0.8rem; background:none; border:none; color:var(--neon-cyan); border-bottom:2px solid var(--neon-cyan); font-weight:bold; cursor:pointer; transition:0.3s;"><i
+                        class="ph ph-camera"></i> Scan Mode</button>
+                <button id="tabManual" class="tab-btn"
+                    style="flex:1; padding:0.8rem; background:none; border:none; color:var(--text-dim); border-bottom:2px solid transparent; font-weight:bold; cursor:pointer; transition:0.3s;"><i
+                        class="ph ph-keyboard"></i> Manual Input</button>
+            </div>
+
+            <!-- AREA 1: SCANNER -->
+            <div id="areaScan">
+                <div class="search-actions mb-2">
+                    <button id="toggleScannerBtn" class="action-btn purple-outline w-full"><i class="ph ph-camera"></i>
+                        Aktifkan Lensa Kamera</button>
+                </div>
+                <div id="scannerSection" class="hidden mb-2 mt-3">
+                    <div class="camera-lens" style="box-shadow:0 10px 20px rgba(0,0,0,0.5);">
+                        <video id="cameraFeed" autoplay playsinline></video>
+                        <div class="scan-frame"></div><canvas id="snapshotCanvas" class="hidden"></canvas>
+                    </div>
+                    <p
+                        style="font-size:0.75rem; color:var(--neon-purple); text-align:center; margin:0.8rem 0; font-weight:bold;">
+                        <i class="ph ph-arrows-in line-height"></i> Pastikan style code masuk seluruhnya di kotak tengah
+                    </p>
+                    <button id="captureBtn" class="action-btn primary-btn mt-2 w-full pulse">Proses Scan</button>
+                </div>
+            </div>
+
+            <!-- AREA 2: MANUAL INPUT -->
+            <div id="areaManual" class="hidden">
+                <div class="form-group">
+                    <label>Style Brand Override (Opsional)</label>
+                    <select class="form-select" id="searchBrand">
+                        <option value="">Semua Brand</option>
+                        <option value="LLBean">LLBean</option>
+                        <option value="Ann Taylor">Ann Taylor</option>
+                        <option value="Hugo Boss">Hugo Boss</option>
+                        <option value="J.JIL">J.JIL</option>
+                        <option value="BONOBOS">BONOBOS</option>
+                    </select>
+                </div>
+                <div class="form-group mt-3">
+                    <label>Style Code Primer</label>
+                    <input type="text" id="smartSearchInputModal" class="smart-input"
+                        placeholder="Masukkan angka/kode style...">
+                </div>
+                <button id="execSearchBtn" class="action-btn outline-btn w-full mt-4">Jalankan Pencarian (Cari
+                    Style)</button>
+            </div>
+
+            <div id="ocrLoading" class="loading-state hidden mt-4"><i class="ph ph-spinner-gap spin"
+                    style="font-size:2rem; margin-bottom:0.5rem;"></i><br>Memproses Ekstraksi AI...</div>
+
+
+        </div>
+    </div>
+
+    <!-- MODAL 2: REQUEST FORM (IE / Sewing) -->
+    <div id="requestModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="reqModalTitle">New Request</h3>
+                <button class="close-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="requestForm" onsubmit="return false;">
+                <input type="hidden" id="reqType" value="IE">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Style Brand</label>
+                        <select class="form-select" id="reqBrand" required>
+                            <option value="">Pilih Brand...</option>
+                            <option value="Ann Taylor">Ann Taylor</option>
+                            <option value="LLBean">LLBean</option>
+                            <option value="Vineyrd vines">Vineyrd vines</option>
+                            <option value="Hugo Boss">Hugo Boss</option>
+                            <option value="J.JILL">J.JILL</option>
+                            <option value="BONOBOS">BONOBOS</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Style Code (6-15 Char)</label>
+                        <input type="text" class="smart-input" id="reqCode" required minlength="6" maxlength="15"
+                            pattern="[a-zA-Z0-9-\s]+" title="Hanya 6-15 Huruf dan Angka">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Line</label>
+                    <select class="form-select" id="reqLine" required>
+                        <option value="">Pilih Line...</option>
+                        <!-- Options generated via JS 1-22 -->
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Process</label>
+                    <input type="text" class="smart-input" id="reqProcess" required>
+                </div>
+                <!-- Dynamic Field based on Type -->
+                <div class="form-group" id="reqIELayoutDateGroup">
+                    <label>Tanggal Layout (Hanya IE)</label>
+                    <input type="date" class="form-date" id="reqTanggal">
+                </div>
+                <div class="form-group hidden" id="reqSewingNoteGroup">
+                    <label>Keterangan (Hanya Sewing)</label>
+                    <textarea class="form-textarea" id="reqKeterangan" rows="2"></textarea>
+                </div>
+
+                <button type="submit" id="submitReqBtn" class="action-btn primary-btn w-full mt-4">Submit</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: LINE DATA -->
+    <div id="lineDataModal" class="modal hidden">
+        <div class="modal-content" style="max-width:600px;">
+            <div class="modal-header">
+                <h3 id="lineModalTitle">Factory X - Line Y</h3>
+                <button class="close-modal"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="table-responsive">
+                <table id="tblLineData">
+                    <thead>
+                        <tr>
+                            <th>Line</th>
+                            <th>Style</th>
+                            <th>Proses</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                            <th class="admin-only hidden" style="text-align:center; min-width:180px;">Aksi Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center">Loading...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    </div>
+
+    <!-- ========================== -->
+    <!-- MODAL 5: IE LOGIN          -->
+    <!-- ========================== -->
+    <div id="modalIELoginPublic" class="modal hidden">
+        <div class="modal-content" style="max-width: 320px; text-align: center;">
+            <span class="close-modal"
+                onclick="document.getElementById('modalIELoginPublic').classList.add('hidden')">&times;</span>
+            <i class="ph ph-lock-key" style="font-size: 2.5rem; color: #10b981; margin-bottom: 1rem;"></i>
+            <h3 style="margin-bottom: 0.5rem; color: #10b981;">Otentikasi Khusus IE</h3>
+            <p style="color: var(--text-dim); font-size: 0.8rem; margin-bottom: 1.5rem;">
+                Masukkan password khusus departemen IE untuk membuka akses Input Data.
+            </p>
+            <form id="ieLoginForm" onsubmit="handleIELogin(event)">
+                <input type="password" id="iePasswordPublic" class="form-control" placeholder="Kata Sandi..."
+                    style="margin-bottom: 1rem; text-align: center; letter-spacing: 2px;">
+                <button type="submit" id="btnIELoginSubmit" class="action-btn w-full"
+                    style="background: #10b981; color: white;">
+                    Minta Akses
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ========================== -->
+    <!-- MODAL 6: IE INPUT TBL      -->
+    <!-- ========================== -->
+    <div id="modalIEInputPublic" class="modal hidden">
+        <div class="modal-content" style="max-width: 350px;">
+            <span class="close-modal"
+                onclick="document.getElementById('modalIEInputPublic').classList.add('hidden')">&times;</span>
+            <h3
+                style="margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; color: var(--neon-blue);">
+                <i class="ph ph-wrench"></i> Input Data IE
+            </h3>
+            <p id="ieModalDescPublic" style="color: var(--text-dim); font-size: 0.85rem; margin-bottom: 1rem;"></p>
+
+            <input type="hidden" id="ieRowIndexPublic">
+            <input type="hidden" id="ieStylePublic">
+            <input type="hidden" id="ieLinePublic">
+            <input type="hidden" id="ieProsesPublic">
+
+            <div class="form-group pt-2">
+                <label>SMV Target (Menit)</label>
+                <input type="number" id="ieSmvPublic" class="form-control" placeholder="Contoh: 12.5" step="0.01">
+            </div>
+            <div class="form-group pt-2">
+                <label>Actual / Realisasi</label>
+                <input type="number" id="ieActualPublic" class="form-control" placeholder="Contoh: 12.0" step="0.01">
+            </div>
+            <div class="form-group pt-2">
+                <label><i class="ph ph-video" style="color:#10b981;"></i> Link Video Before (Google Drive)</label>
+                <input type="url" id="ieVideoBPublic" class="form-control"
+                    placeholder="https://drive.google.com/file/d/...">
+            </div>
+            <div class="form-group pt-2">
+                <label><i class="ph ph-video" style="color:#f59e0b;"></i> Link Video After (Google Drive)</label>
+                <input type="url" id="ieVideoAPublic" class="form-control"
+                    placeholder="https://drive.google.com/file/d/...">
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; margin-top: 1.5rem;">
+                <button type="button" class="action-btn"
+                    onclick="document.getElementById('modalIEInputPublic').classList.add('hidden')"
+                    style="background: var(--bg-hover); flex: 1;">Batal</button>
+                <button type="button" class="action-btn" onclick="submitIEDataPublic()"
+                    style="background: var(--neon-blue); color: white; flex: 1;" id="btnSubmitIEPublic">
+                    <i class="ph ph-save-alt"></i> Simpan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: VIDEO PLAYER (Inline Dashboard) -->
+    <div id="modalVideoPlayer" class="hidden">
+        <div class="video-player-overlay" onclick="closeVideoPlayer()">
+            <div class="video-player-container" onclick="event.stopPropagation()">
+                <div class="video-player-header">
+                    <span class="vp-title" id="videoPlayerTitle"><i class="ph ph-film-strip"></i> Video</span>
+                    <button class="vp-close" onclick="closeVideoPlayer()" title="Tutup"><i class="ph ph-x"></i></button>
+                </div>
+                <div class="video-player-body">
+                    <iframe id="videoPlayerFrame" allow="autoplay; fullscreen" allowfullscreen></iframe>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ADMIN LOGIN -->
+    <div id="modalAdminLogin" class="modal hidden">
+        <div class="modal-content" style="max-width: 350px;">
+            <div class="modal-header">
+                <h3><i class="ph ph-shield-check"></i> Admin Access</h3>
+                <button class="close-modal" onclick="closeAdminLoginModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="form-group">
+                <label>System Password</label>
+                <input type="password" id="adminPasswordInput" class="smart-input" placeholder="Enter override code...">
+            </div>
+            <button class="action-btn primary-btn w-full mt-3" onclick="executeAdminLogin()">Authenticate</button>
+        </div>
+    </div>
+
+    <!-- MODAL 4: SET PENGUMUMAN (Admin Only) -->
+    <div id="modalPengumuman" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; border: 1px solid var(--neon-cyan);">
+            <div class="modal-header">
+                <h3 style="color: var(--neon-cyan);"><i class="ph ph-megaphone"></i> Set Pengumuman Global</h3>
+                <button class="close-modal" onclick="closePengumumanModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="form-group">
+                <label>Teks Pengumuman Berjalan</label>
+                <input type="text" id="adminPengumuman" class="smart-input" placeholder="Teks akan muncul di semua klien...">
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                <button class="action-btn primary-btn" style="flex: 1;" onclick="setPengumuman()"><i class="ph ph-paper-plane-right"></i> Kirim</button>
+                <button class="action-btn outline-btn" style="flex: 1; border-color: #ef4444; color: #ef4444;" onclick="stopPengumuman()"><i class="ph ph-stop-circle"></i> Matikan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: ADMIN EDIT ROW -->
+    <div id="modalAdminEdit" class="modal hidden">
+        <div class="modal-content" style="max-width: 400px; border: 1px solid var(--neon-green);">
+            <div class="modal-header">
+                <h3 style="color: var(--neon-green);"><i class="ph ph-pencil-simple"></i> Edit Baris Data</h3>
+                <button class="close-modal" onclick="closeAdminEditModal()"><i class="ph ph-x"></i></button>
+            </div>
+            <form id="adminEditForm" onsubmit="saveAdminEdit(event)">
+                <input type="hidden" id="adminEditSheet">
+                <input type="hidden" id="adminEditRowIndex">
+                
+                <div class="form-group">
+                    <label>Line</label>
+                    <input type="text" id="adminEditLine" class="smart-input" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Style / Buyer</label>
+                    <input type="text" id="adminEditStyle" class="smart-input" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Proses</label>
+                    <input type="text" id="adminEditProses" class="smart-input" required>
+                </div>
+                <div class="form-group mt-2">
+                    <label>Status</label>
+                    <select id="adminEditStatus" class="form-select" required>
+                        <option value="Running">Running</option>
+                        <option value="Ready">Ready</option>
+                        <option value="Process">Process</option>
+                        <option value="Sample">Sample</option>
+                        <option value="Not Used">Not Used</option>
+                        <option value="No Process">No Process</option>
+                    </select>
+                </div>
+                <button type="submit" class="action-btn primary-btn w-full mt-4" style="background: rgba(0,255,136,0.1); border-color: var(--neon-green); color: var(--neon-green);"><i class="ph ph-floppy-disk"></i> Simpan Perubahan</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- FFmpeg.wasm for client-side video compression -->
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.12.10/dist/umd/ffmpeg.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/util@0.12.1/dist/umd/util.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+    <!-- Particles JS Library -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/wa_share.js"></script>
+
+    <!-- ✅ PWA: Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('[PWA] Service Worker aktif, scope:', reg.scope))
+                    .catch((err) => console.warn('[PWA] Service Worker gagal:', err));
+            });
+        }
+    </script>
+</body>
+
+</html>

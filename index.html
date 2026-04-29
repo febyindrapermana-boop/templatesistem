@@ -515,6 +515,13 @@
                         </div>
                     </div>
 
+                    <div style="margin-bottom:1rem; display:flex; justify-content:flex-start; align-items:center;">
+                        <div style="position:relative; width:100%; max-width:350px;">
+                            <i class="ph ph-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-dim); font-size:1.1rem;"></i>
+                            <input type="text" id="inventorySearch" class="smart-input" placeholder="Cari Buyer, Style, atau Proses..." style="width:100%; padding:0.6rem 1rem 0.6rem 35px; border-radius:8px;" oninput="renderTables()">
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
                         <table id="tblInventory">
                             <thead>
@@ -528,11 +535,18 @@
                                     <th>Status</th>
                                     <th>Posisi</th>
                                     <th>Size</th>
+                                    <th style="text-align:center;">SMV</th>
+                                    <th style="text-align:center;">Actual</th>
+                                    <th style="text-align:center;">Saving</th>
+                                    <th style="text-align:center;">Rate</th>
+                                    <th style="text-align:center; min-width:70px;">Video B</th>
+                                    <th style="text-align:center; min-width:70px;">Video A</th>
+                                    <th style="font-size:0.8rem; color:var(--text-dim);">Update Terakhir</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="10" class="text-center">Loading...</td>
+                                    <td colspan="17" class="text-center">Loading...</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -649,7 +663,6 @@
                             <table id="tblArchiveProduction">
                                 <thead>
                                     <tr style="font-size:0.75rem;">
-                                        <th style="min-width:80px;">Timestamp</th>
                                         <th>Line</th>
                                         <th>Style</th>
                                         <th>Proses</th>
@@ -658,9 +671,9 @@
                                         <th style="text-align:center;">Actual</th>
                                         <th style="text-align:center;">Saving</th>
                                         <th style="text-align:center;">Rate</th>
-                                        <th style="text-align:center; min-width:70px;">Video B</th>
-                                        <th style="text-align:center; min-width:70px;">Video A</th>
-                                        <th class="admin-only hidden" style="text-align:center; min-width:100px;">Aksi</th>
+                                        <th style="text-align:center; min-width:70px;">Video Before</th>
+                                        <th style="text-align:center; min-width:70px;">Video After</th>
+                                        <th style="min-width:80px;">Timestamp</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -941,12 +954,11 @@
                     </select>
                 </div>
                 <div class="form-group mt-3">
-                    <label>Style Code Primer</label>
+                    <label>Pencarian Pintar (Style Code / Proses)</label>
                     <input type="text" id="smartSearchInputModal" class="smart-input"
-                        placeholder="Masukkan angka/kode style...">
+                        placeholder="Masukkan kode style atau nama proses...">
                 </div>
-                <button id="execSearchBtn" class="action-btn outline-btn w-full mt-4">Jalankan Pencarian (Cari
-                    Style)</button>
+                <button id="execSearchBtn" class="action-btn outline-btn w-full mt-4">Jalankan Pencarian</button>
             </div>
 
             <div id="ocrLoading" class="loading-state hidden mt-4"><i class="ph ph-spinner-gap spin"

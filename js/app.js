@@ -646,6 +646,7 @@ function renderTables() {
     // Render Archive Tables setelah data siap
     if (typeof renderArchiveProductionTable === 'function') renderArchiveProductionTable();
     if (typeof renderArchiveTemplateTable === 'function') renderArchiveTemplateTable();
+    if (typeof renderAdminRequestTable === 'function') renderAdminRequestTable();
 
     // Render Grid Buttons Factory A (1-12) & B (13-22)
     const gridA = document.getElementById('gridFactoryA');
@@ -736,25 +737,136 @@ function renderTables() {
     // Render Inventory
     const tbodyInv = document.querySelector('#tblInventory tbody');
     if (tbodyInv && allData.inventory && allData.inventory.length > 0) {
-        let lastBuyer = null;
-        let lastCode = null;
+        let lastCodeForDisplay = null;
+        let lastResolvedCode = null;
+        let lastResolvedBuyer = null;
 
-        tbodyInv.innerHTML = allData.inventory.map(row => {
-            const curBuyer = (row.buyer || '').toString().trim();
-            const curCode = (row.code || '').toString().trim();
-            let showBuyer = curBuyer;
-            let showCode = curCode;
+        const vLink = (url, label) => url
+            ? `<button class="video-pill ${label === 'Before' ? 'video-pill-before' : 'video-pill-after'}" onclick="openVideoPlayer('${url.replace(/'/g, "\\'")}','${label}')" title="Putar ${label}"><i class="ph ph-play-circle"></i> ${label}</button>`
+            : `<span style="color:var(--text-dim);font-size:0.7rem;">&#8212;</span>`;
 
-            if (curBuyer === lastBuyer) {
-                showBuyer = "";
-                if (curCode === lastCode) {
-                    showCode = "";
-                } else {
-                    lastCode = curCode;
+        const findMatch = (db, targetCode, targetProses) => {
+            if (!db) return null;
+            let currentStyle = "";
+            let cleanTargetProses = targetProses.toLowerCase().replace(/[^a-z0-9]/g, '');
+            let tCode = targetCode.toLowerCase();
+            
+            for (let r of db) {
+                let rStyle = String(r.style || r.code || '').trim();
+                if (rStyle !== "") currentStyle = rStyle;
+                
+                let cStyle = currentStyle.toLowerCase();
+                let cleanDbProses = String(r.proses || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+                
+                let codeMatches = false;
+                if (cStyle === tCode) codeMatches = true;
+                else if (tCode.length > 3 && cStyle.includes(tCode)) codeMatches = true;
+                else if (cStyle.length > 3 && tCode.includes(cStyle)) codeMatches = true;
+                
+                if (codeMatches && cleanDbProses === cleanTargetProses && cleanTargetProses !== "") {
+                    // Pastikan ini bukan baris header
+                    if (r.smv !== 'SMV' && r.actual !== 'Actual') {
+                        return r;
+                    }
                 }
+            }
+            return null;
+        };
+
+        const validInv = allData.inventory.filter(r => (r.code && r.code.trim() !== '') || (r.proses && r.proses.trim() !== ''));
+
+        // Pra-proses untuk resolve buyer & code yang kosong (di-group)
+        let tempResolvedCode = null;
+        let tempResolvedBuyer = null;
+        let processedInv = validInv.map(row => {
+            let aBuyer = (row.buyer || '').toString().trim();
+            let aCode = (row.code || '').toString().trim();
+
+            if (aCode === "" && tempResolvedCode !== null) aCode = tempResolvedCode;
+            else tempResolvedCode = aCode;
+
+            if (aBuyer === "" && tempResolvedBuyer !== null) aBuyer = tempResolvedBuyer;
+            else tempResolvedBuyer = aBuyer;
+
+            return { ...row, actualBuyer: aBuyer, actualCode: aCode };
+        });
+
+        // Terapkan Filter Pencarian
+        const searchInput = document.getElementById('inventorySearch');
+        const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
+        if (searchVal !== "") {
+            processedInv = processedInv.filter(row => {
+                const b = row.actualBuyer.toLowerCase();
+                const c = row.actualCode.toLowerCase();
+                const p = (row.proses || '').toLowerCase();
+                return b.includes(searchVal) || c.includes(searchVal) || p.includes(searchVal);
+            });
+        }
+
+        tbodyInv.innerHTML = processedInv.map(row => {
+            let actualBuyer = row.actualBuyer;
+            let actualCode = row.actualCode;
+
+            let showBuyer = actualBuyer;
+            let showCode = actualCode;
+
+            if (actualCode === lastCodeForDisplay) {
+                showBuyer = "";
+                showCode = "";
             } else {
-                lastBuyer = curBuyer;
-                lastCode = curCode;
+                lastCodeForDisplay = actualCode;
+            }
+
+            // --- SMART MERGE dengan Template In-Line & Archive Template ---
+            let mergedSmv = '-';
+            let mergedActual = '-';
+            let mergedSaving = '-';
+            let mergedRate = '-';
+            let mergedVideoB = '';
+            let mergedVideoA = '';
+            let mergedTimestamp = '-';
+            
+            // Prioritas 1: Template In-Line (Data Live)
+            let matchData = findMatch(allData.templateInLine, actualCode, String(row.proses || '').trim());
+            
+            // Prioritas 2: Archive Template
+            let archData = findMatch(allData.archiveTemplate, actualCode, String(row.proses || '').trim());
+            
+            // Menggabungkan data: Archive sebagai dasar, In-Line menimpa jika ada nilainya
+            let finalMatch = null;
+            if (archData || matchData) {
+                finalMatch = {};
+                if (archData) Object.assign(finalMatch, archData);
+                if (matchData) {
+                    if (matchData.smv && String(matchData.smv).trim() !== '') finalMatch.smv = matchData.smv;
+                    if (matchData.actual && String(matchData.actual).trim() !== '') finalMatch.actual = matchData.actual;
+                    if (matchData.saving && String(matchData.saving).trim() !== '') finalMatch.saving = matchData.saving;
+                    if (matchData.rate && String(matchData.rate).trim() !== '') finalMatch.rate = matchData.rate;
+                    if (matchData.videoB && String(matchData.videoB).trim() !== '') finalMatch.videoB = matchData.videoB;
+                    if (matchData.videoA && String(matchData.videoA).trim() !== '') finalMatch.videoA = matchData.videoA;
+                    if (matchData.timestamp && String(matchData.timestamp).trim() !== '') finalMatch.timestamp = matchData.timestamp;
+                }
+            }
+            
+            let sCol = 'var(--text-dim)';
+            let sStr = '-';
+
+            if (finalMatch) {
+                mergedSmv = finalMatch.smv || '-';
+                mergedActual = finalMatch.actual || '-';
+                mergedVideoB = finalMatch.videoB || '';
+                mergedVideoA = finalMatch.videoA || '';
+                mergedTimestamp = finalMatch.timestamp ? formatDateString(finalMatch.timestamp) : '-';
+                
+                let savingRaw = String(finalMatch.saving || '').trim();
+                if (savingRaw !== '') {
+                    const sVal = parseFloat(savingRaw.replace(',', '.'));
+                    const sNum = isNaN(sVal) ? 0 : sVal;
+                    sCol = sNum > 0 ? 'var(--neon-green)' : (sNum < 0 ? 'var(--neon-red)' : 'var(--text-dim)');
+                    sStr = !isNaN(sVal) ? sVal.toFixed(1) : '-';
+                }
+                
+                mergedRate = finalMatch.rate ? finalMatch.rate + (String(finalMatch.rate).includes('%') ? '' : '%') : '-';
             }
 
             return `<tr>
@@ -767,6 +879,13 @@ function renderTables() {
                 <td><span class="badge ${getStatusBadge(row.status || '')}">${row.status || '-'}</span></td>
                 <td>${getPositionBadge(row.code)}</td>
                 <td>${row.size || '-'}</td>
+                <td style="text-align:center; color:var(--neon-blue); font-weight:500;">${mergedSmv}</td>
+                <td style="text-align:center;">${mergedActual}</td>
+                <td style="text-align:center; font-weight:bold; color:${sCol};">${sStr}</td>
+                <td style="text-align:center;">${mergedRate}</td>
+                <td style="text-align:center;">${vLink(mergedVideoB, 'Before')}</td>
+                <td style="text-align:center;">${vLink(mergedVideoA, 'After')}</td>
+                <td style="font-size:0.65rem; color:var(--text-dim);">${mergedTimestamp}</td>
             </tr>`;
         }).join('');
 
@@ -2026,19 +2145,30 @@ function initOCRExpanded() {
             // Desain Card-like untuk tiap hasil
             const cardStyle = "background:rgba(255,255,255,0.02); border:1px solid rgba(0,191,255,0.2); border-radius:6px; padding:1.2rem; margin-bottom:1rem; font-size:0.95rem; line-height:1.6;";
             const labelStyle = "color:var(--text-dim); display:inline-block; width:70px;";
+            const renderVideoRow = (vB, vA) => {
+                let html = '';
+                if(vB || vA) {
+                    html += `<div style="margin-top:0.8rem; display:flex; gap:0.5rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.8rem;">`;
+                    if (vB) html += `<button class="video-pill video-pill-before" style="flex:1;" onclick="openVideoPlayer('${vB}','Video Before')"><i class="ph ph-play-circle"></i> Video Before</button>`;
+                    if (vA) html += `<button class="video-pill video-pill-after" style="flex:1;" onclick="openVideoPlayer('${vA}','Video After')"><i class="ph ph-play-circle"></i> Video After</button>`;
+                    html += `</div>`;
+                }
+                return html;
+            };
 
             // 1. Pencarian di Template
             if (allData.templateInLine) {
-                const f = allData.templateInLine.find(r => (r.style || '').toLowerCase().includes(query) || (r.code || '').toLowerCase().includes(query));
-                if (f) {
+                const results = allData.templateInLine.filter(r => (r.style || '').toLowerCase().includes(query) || (r.code || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
+                results.slice(0, 10).forEach(f => {
                     foundHTML += `<div style="${cardStyle}">
                         <div style="color:var(--neon-green); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,255,136,0.2); padding-bottom:0.5rem;"><i class="ph ph-grid-four"></i> Template In-Line [Line ${f.line || '-'}]</div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || fallbackBuyer}</span></div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.style || f.code || '-'}</span></div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
                         <div style="margin-top:0.8rem;"><span class="badge ${getStatusBadge(f.status)}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
+                        ${renderVideoRow(f.videoB, f.videoA)}
                     </div>`;
-                }
+                });
             }
 
             // 2. Helper Pencarian di Factory Objects
@@ -2046,16 +2176,25 @@ function initOCRExpanded() {
                 if (!facObj) return;
                 for (const [line, arr] of Object.entries(facObj)) {
                     if (!Array.isArray(arr)) continue;
-                    const hit = arr.find(r => (r.style || '').toLowerCase().includes(query));
-                    if (hit) {
+                    const results = arr.filter(r => (r.style || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
+                    results.slice(0, 10).forEach(hit => {
+                        // Attempt to find video in archive template
+                        let vB = hit.videoB || '';
+                        let vA = hit.videoA || '';
+                        if (!vB && !vA && allData.archiveTemplate) {
+                           const arch = allData.archiveTemplate.find(a => String(a.style||'').toLowerCase() === String(hit.style||'').toLowerCase() && String(a.proses||'').toLowerCase() === String(hit.proses||'').toLowerCase());
+                           if (arch) { vB = arch.videoB; vA = arch.videoA; }
+                        }
+                        
                         foundHTML += `<div style="${cardStyle}">
                             <div style="color:var(${color}); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.5rem;"><i class="ph ${icon}"></i> ${title} [${line}]</div>
                             <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${hit.buyer || fallbackBuyer}</span></div>
                             <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${hit.style || '-'}</span></div>
                             <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${hit.proses || '-'}</span></div>
                             <div style="margin-top:0.8rem;"><span class="badge ${getStatusBadge(hit.status)}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${hit.status || 'Unknown'}</span></div>
+                            ${renderVideoRow(vB, vA)}
                         </div>`;
-                    }
+                    });
                 }
             };
             findFac(allData.factoryA, 'Factory A', 'ph-factory', '--neon-cyan');
@@ -2063,18 +2202,25 @@ function initOCRExpanded() {
 
             // 3. Pencarian di Inventory
             if (allData.inventory) {
-                const f = allData.inventory.find(r => (r.code || '').toLowerCase().includes(query) || (r.buyer || '').toLowerCase().includes(query));
-                if (f) {
+                const results = allData.inventory.filter(r => (r.code || '').toLowerCase().includes(query) || (r.buyer || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
+                results.slice(0, 10).forEach(f => {
+                    let vB = ''; let vA = '';
+                    if (allData.archiveTemplate) {
+                        const arch = allData.archiveTemplate.find(a => String(a.style||'').toLowerCase() === String(f.code||'').toLowerCase() && String(a.proses||'').toLowerCase() === String(f.proses||'').toLowerCase());
+                        if (arch) { vB = arch.videoB; vA = arch.videoA; }
+                    }
                     foundHTML += `<div style="${cardStyle}">
                         <div style="color:var(--neon-orange); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(249,115,22,0.2); padding-bottom:0.5rem;"><i class="ph ph-package"></i> Data Gudang (Inventory)</div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Tanggal:</span> <span style="color:#fff;">${f.tanggal || '-'}</span></div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || fallbackBuyer}</span></div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.code || '-'}</span></div>
+                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
                         <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Qty:</span> <span style="color:#fff;">${f.qty || '-'} Pcs</span> <span style="${labelStyle}; width:auto; margin-left:1rem;">Size:</span> <span style="color:#fff;">${f.size || '-'}</span></div>
                         <div style="margin-bottom:0.6rem; margin-top:0.8rem;"><span style="${labelStyle}; width:auto; margin-right:0.5rem;">Lokasi Fisik Barang:</span> ${getPositionBadge(f.code) || '-'}</div>
                         <div style="margin-top:0.3rem;"><span class="badge ${getStatusBadge(f.status || '')}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
+                        ${renderVideoRow(vB, vA)}
                     </div>`;
-                }
+                });
             }
 
             resList.innerHTML = foundHTML || '<div style="color:var(--text-dim); text-align:center; padding:3rem;"><i class="ph ph-warning" style="font-size:3rem; margin-bottom:1rem;"></i><br>Oops, obyek tidak ditemukan di riwayat manapun.</div>';
@@ -2994,3 +3140,123 @@ function renderUploadHistory() {
 document.addEventListener('DOMContentLoaded', () => {
     renderUploadHistory();
 });
+
+// ==========================
+// ADMIN HUB FUNCTIONS
+// ==========================
+
+window.openPengumumanModal = function() {
+    const modal = document.getElementById('modalPengumuman');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closePengumumanModal = function() {
+    const modal = document.getElementById('modalPengumuman');
+    if (modal) modal.classList.add('hidden');
+};
+
+window.setPengumuman = function() {
+    const text = document.getElementById('adminPengumuman').value;
+    if(!text) {
+        showToast('Teks tidak boleh kosong', 'error');
+        return;
+    }
+    showLoading('Menyiarkan pengumuman...');
+    const formData = new URLSearchParams();
+    formData.append('action', 'setPengumuman');
+    formData.append('text', text);
+    
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+    })
+    .then(() => {
+        hideLoading();
+        showToast('Pengumuman berhasil disiarkan', 'success');
+        closePengumumanModal();
+        forceRefreshData();
+    })
+    .catch(err => {
+        hideLoading();
+        showToast('Gagal menyiarkan pengumuman', 'error');
+    });
+};
+
+window.stopPengumuman = function() {
+    if(!confirm('Matikan pengumuman saat ini?')) return;
+    showLoading('Mematikan pengumuman...');
+    const formData = new URLSearchParams();
+    formData.append('action', 'setPengumuman');
+    formData.append('text', '');
+    
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+    })
+    .then(() => {
+        hideLoading();
+        showToast('Pengumuman dimatikan', 'success');
+        closePengumumanModal();
+        forceRefreshData();
+    })
+    .catch(err => {
+        hideLoading();
+        showToast('Gagal mematikan pengumuman', 'error');
+    });
+};
+
+window.renderAdminRequestTable = function() {
+    const tbody = document.querySelector('#tblAdminRequest tbody');
+    if (!tbody) return;
+    
+    let sourceData = allData.antrean || allData.layoutRequests || [];
+    if (!sourceData || sourceData.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada antrean / Tidak ada data</td></tr>';
+        return;
+    }
+
+    const validHTML = sourceData.map((row, index) => {
+        // Filter: Jangan tampilkan yang statusnya sudah Selesai
+        const status = (row.status_template || row.status_penyelesaian || row.status_kirim || '').toLowerCase();
+        if (status.includes('selesai')) return '';
+
+        return `
+        <tr>
+            <td style="font-size:0.75rem; color:var(--text-dim);">${row.waktu ? formatDateString(row.waktu) : '-'}</td>
+            <td style="font-weight:bold; color:var(--neon-cyan);">${row.line || '-'}</td>
+            <td style="font-weight:500;">${row.style || '-'}</td>
+            <td style="text-align:center;">
+                <button class="action-btn outline-btn" style="padding:0.3rem 0.6rem; font-size:0.75rem; color:#ef4444; border-color:#ef4444;" onclick="deleteAdminRequest(${index})">
+                    <i class="ph ph-check-circle"></i> Tandai Selesai
+                </button>
+            </td>
+        </tr>`;
+    }).join('');
+
+    tbody.innerHTML = validHTML.trim() === '' ? '<tr><td colspan="4" class="text-center">Semua antrean sudah selesai / Tidak ada antrean baru</td></tr>' : validHTML;
+};
+
+window.deleteAdminRequest = function(index) {
+    if(!confirm('Tandai antrean ini selesai/hapus?')) return;
+    showLoading('Menghapus antrean...');
+    const formData = new URLSearchParams();
+    formData.append('action', 'deleteAntrean');
+    formData.append('index', index);
+    
+    fetch(APPS_SCRIPT_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        body: formData
+    })
+    .then(() => {
+        hideLoading();
+        showToast('Antrean diselesaikan', 'success');
+        forceRefreshData();
+    })
+    .catch(err => {
+        hideLoading();
+        showToast('Gagal menyelesaikan antrean', 'error');
+    });
+};

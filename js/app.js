@@ -118,13 +118,25 @@ async function loadAllDataFallback() {
             let lastBuyer = '';
             arr.forEach(r => {
                 // Line
-                if (r.line && String(r.line).trim() !== '') lastLine = String(r.line).trim();
-                else if (lastLine) r.line = lastLine;
+                if (r.line && String(r.line).trim() !== '') {
+                    const newLine = String(r.line).trim();
+                    if (newLine !== lastLine) {
+                        lastBuyer = '';
+                        lastStyle = '';
+                    }
+                    lastLine = newLine;
+                } else if (lastLine) r.line = lastLine;
                 // Style / Code
-                if (r.style && String(r.style).trim() !== '') lastStyle = String(r.style).trim();
-                else if (lastStyle) r.style = lastStyle;
-                if (r.code && String(r.code).trim() !== '') lastStyle = String(r.code).trim();
-                else if (lastStyle && !r.code) r.code = lastStyle; // Sinkronisasi alias code/style
+                if (r.style && String(r.style).trim() !== '') {
+                    const newStyle = String(r.style).trim();
+                    if (newStyle !== lastStyle) lastBuyer = ''; // Style berubah → reset buyer
+                    lastStyle = newStyle;
+                } else if (lastStyle) r.style = lastStyle;
+                if (r.code && String(r.code).trim() !== '') {
+                    const newCode = String(r.code).trim();
+                    if (newCode !== lastStyle) lastBuyer = ''; // Code berubah → reset buyer
+                    lastStyle = newCode;
+                } else if (lastStyle && !r.code) r.code = lastStyle;
                 // Buyer
                 if (r.buyer && String(r.buyer).trim() !== '') lastBuyer = String(r.buyer).trim();
                 else if (lastBuyer) r.buyer = lastBuyer;
@@ -134,6 +146,38 @@ async function loadAllDataFallback() {
         if (allData.templateInLine) applyInheritance(allData.templateInLine);
         if (allData.factoryA) Object.values(allData.factoryA).forEach(arr => applyInheritance(arr));
         if (allData.factoryB) Object.values(allData.factoryB).forEach(arr => applyInheritance(arr));
+
+        // --- BUYER AUTO-CORRECTION ---
+        // Koreksi otomatis buyer berdasarkan prefix style code
+        // Mengatasi masalah merged cells di spreadsheet yang menyebabkan buyer salah
+        const buyerPrefixMap = [
+            { prefix: 'llbean', buyer: 'LLBean' },
+            { prefix: 'hugoboss', buyer: 'Hugo Boss' },
+            { prefix: 'hugo boss', buyer: 'Hugo Boss' },
+            { prefix: 'anntaylor', buyer: 'Ann Taylor' },
+            { prefix: 'ann taylor', buyer: 'Ann Taylor' },
+            { prefix: 'bonobos', buyer: 'BONOBOS' },
+            { prefix: 'j.jil', buyer: 'J.JIL' },
+            { prefix: 'jjil', buyer: 'J.JIL' },
+            { prefix: 'vineyard', buyer: 'Vineyard Vines' }
+        ];
+        const correctBuyer = (arr) => {
+            if (!arr || !Array.isArray(arr)) return;
+            arr.forEach(r => {
+                const styleKey = String(r.style || r.code || '').toLowerCase().replace(/[\s\-_]/g, '');
+                if (!styleKey) return;
+                for (const map of buyerPrefixMap) {
+                    if (styleKey.startsWith(map.prefix.replace(/[\s\-_]/g, ''))) {
+                        r.buyer = map.buyer;
+                        return;
+                    }
+                }
+            });
+        };
+        if (allData.templateInLine) correctBuyer(allData.templateInLine);
+        if (allData.archiveTemplate) correctBuyer(allData.archiveTemplate);
+        if (allData.factoryA) Object.values(allData.factoryA).forEach(arr => correctBuyer(arr));
+        if (allData.factoryB) Object.values(allData.factoryB).forEach(arr => correctBuyer(arr));
 
         // --- DYNAMIC IE CALCULATION (Front-end only) ---
         if (allData.templateInLine) {
@@ -154,6 +198,8 @@ async function loadAllDataFallback() {
         }
 
         // Simpan ke Cache Browser agar waktu memuat aplikasi untuk besok/nanti 0 detik
+        // Hapus cache lama dulu agar data inheritance yang sudah diperbaiki tersimpan bersih
+        localStorage.removeItem('allDataCache');
         localStorage.setItem('allDataCache', JSON.stringify(allData));
 
     } catch (e) {
@@ -170,35 +216,35 @@ async function loadAllDataFallback() {
 // ==========================
 // NAVIGATION SYSTEM
 // ==========================
-window.switchPerfTab = function(panelId) {
+window.switchPerfTab = function (panelId) {
     const isGen = panelId === 'general';
     document.getElementById('panelPerfGeneral').classList.toggle('hidden', !isGen);
     document.getElementById('panelPerfSaving').classList.toggle('hidden', isGen);
-    
+
     const btnGen = document.getElementById('btnPerfGeneral');
     const btnSav = document.getElementById('btnPerfSaving');
-    
+
     btnGen.style.color = isGen ? '#f59e0b' : 'var(--text-dim)';
     btnGen.style.fontWeight = isGen ? '700' : '600';
     btnGen.style.borderBottomColor = isGen ? '#f59e0b' : 'transparent';
-    
+
     btnSav.style.color = !isGen ? '#f59e0b' : 'var(--text-dim)';
     btnSav.style.fontWeight = !isGen ? '700' : '600';
     btnSav.style.borderBottomColor = !isGen ? '#f59e0b' : 'transparent';
 };
 
-window.switchLogTab = function(type) {
+window.switchLogTab = function (type) {
     const isIE = type === 'IE';
     document.getElementById('panelLogIE').classList.toggle('hidden', !isIE);
     document.getElementById('panelLogSewing').classList.toggle('hidden', isIE);
-    
+
     const btnIE = document.getElementById('btnLogIE');
     const btnSew = document.getElementById('btnLogSewing');
-    
+
     btnIE.style.color = isIE ? 'var(--neon-cyan)' : 'var(--text-dim)';
     btnIE.style.fontWeight = isIE ? '700' : '600';
     btnIE.style.borderBottomColor = isIE ? 'var(--neon-cyan)' : 'transparent';
-    
+
     btnSew.style.color = !isIE ? 'var(--neon-cyan)' : 'var(--text-dim)';
     btnSew.style.fontWeight = !isIE ? '700' : '600';
     btnSew.style.borderBottomColor = !isIE ? 'var(--neon-cyan)' : 'transparent';
@@ -680,7 +726,7 @@ function renderTables() {
         // Filter data dari berbagai kemungkinan kunci (layoutRequests, sheet25/26, requestIE/Sewing)
         let sourceData = [];
         const isIE = type.toUpperCase() === 'IE';
-        
+
         if (isIE) {
             sourceData = allData.sheet25 || allData.requestIE || allData.logIE || allData.layoutRequests || [];
         } else {
@@ -691,7 +737,7 @@ function renderTables() {
             .filter(row => {
                 // Jika data dari layoutRequests, filter berdasarkan type. Jika dari sheet25/26, ambil semua.
                 if (row.type) return row.type.toLowerCase() === type.toLowerCase();
-                return true; 
+                return true;
             })
             .slice().reverse();
 
@@ -700,7 +746,7 @@ function renderTables() {
                 const statusKirim = row.status_kirim || row.status_penyelesaian || 'Terkirim';
                 const statusTemplate = row.status_template || 'Pending';
                 const timestamp = row.timestamp || '-';
-                
+
                 if (type.toUpperCase() === 'IE') {
                     const tglLayout = row.tanggal || row.tgl || row.tglLayout || row.tanggal_layout || row.date || row.note || row.keterangan || '-';
                     return `
@@ -750,19 +796,19 @@ function renderTables() {
             let currentStyle = "";
             let cleanTargetProses = targetProses.toLowerCase().replace(/[^a-z0-9]/g, '');
             let tCode = targetCode.toLowerCase();
-            
+
             for (let r of db) {
                 let rStyle = String(r.style || r.code || '').trim();
                 if (rStyle !== "") currentStyle = rStyle;
-                
+
                 let cStyle = currentStyle.toLowerCase();
                 let cleanDbProses = String(r.proses || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-                
+
                 let codeMatches = false;
                 if (cStyle === tCode) codeMatches = true;
                 else if (tCode.length > 3 && cStyle.includes(tCode)) codeMatches = true;
                 else if (cStyle.length > 3 && tCode.includes(cStyle)) codeMatches = true;
-                
+
                 if (codeMatches && cleanDbProses === cleanTargetProses && cleanTargetProses !== "") {
                     // Pastikan ini bukan baris header
                     if (r.smv !== 'SMV' && r.actual !== 'Actual') {
@@ -775,7 +821,7 @@ function renderTables() {
 
         const validInv = allData.inventory.filter(r => (r.code && r.code.trim() !== '') || (r.proses && r.proses.trim() !== ''));
 
-        // Pra-proses untuk resolve buyer & code yang kosong (di-group)
+        // Pra-proses untuk resolve buyer & code yang kosong (di-group) + SMART MERGE
         let tempResolvedCode = null;
         let tempResolvedBuyer = null;
         let processedInv = validInv.map(row => {
@@ -788,10 +834,29 @@ function renderTables() {
             if (aBuyer === "" && tempResolvedBuyer !== null) aBuyer = tempResolvedBuyer;
             else tempResolvedBuyer = aBuyer;
 
-            return { ...row, actualBuyer: aBuyer, actualCode: aCode };
+            // --- SMART MERGE dengan Template In-Line & Archive Template ---
+            let matchData = findMatch(allData.templateInLine, aCode, String(row.proses || '').trim());
+            let archData = findMatch(allData.archiveTemplate, aCode, String(row.proses || '').trim());
+
+            let finalMatch = null;
+            if (archData || matchData) {
+                finalMatch = {};
+                if (archData) Object.assign(finalMatch, archData);
+                if (matchData) {
+                    if (matchData.smv && String(matchData.smv).trim() !== '') finalMatch.smv = matchData.smv;
+                    if (matchData.actual && String(matchData.actual).trim() !== '') finalMatch.actual = matchData.actual;
+                    if (matchData.saving && String(matchData.saving).trim() !== '') finalMatch.saving = matchData.saving;
+                    if (matchData.rate && String(matchData.rate).trim() !== '') finalMatch.rate = matchData.rate;
+                    if (matchData.videoB && String(matchData.videoB).trim() !== '') finalMatch.videoB = matchData.videoB;
+                    if (matchData.videoA && String(matchData.videoA).trim() !== '') finalMatch.videoA = matchData.videoA;
+                    if (matchData.timestamp && String(matchData.timestamp).trim() !== '') finalMatch.timestamp = matchData.timestamp;
+                }
+            }
+
+            return { ...row, actualBuyer: aBuyer, actualCode: aCode, finalMatch: finalMatch };
         });
 
-        // Terapkan Filter Pencarian
+        // Terapkan Filter Pencarian (sekarang bisa mencari SMV, Actual, dsb karena sudah di-merge)
         const searchInput = document.getElementById('inventorySearch');
         const searchVal = searchInput ? searchInput.value.toLowerCase().trim() : "";
         if (searchVal !== "") {
@@ -799,7 +864,17 @@ function renderTables() {
                 const b = row.actualBuyer.toLowerCase();
                 const c = row.actualCode.toLowerCase();
                 const p = (row.proses || '').toLowerCase();
-                return b.includes(searchVal) || c.includes(searchVal) || p.includes(searchVal);
+
+                let smv = '', act = '', sav = '', rate = '';
+                if (row.finalMatch) {
+                    smv = String(row.finalMatch.smv || '').toLowerCase();
+                    act = String(row.finalMatch.actual || '').toLowerCase();
+                    sav = String(row.finalMatch.saving || '').toLowerCase();
+                    rate = String(row.finalMatch.rate || '').toLowerCase();
+                }
+
+                return b.includes(searchVal) || c.includes(searchVal) || p.includes(searchVal) ||
+                    smv.includes(searchVal) || act.includes(searchVal) || sav.includes(searchVal) || rate.includes(searchVal);
             });
         }
 
@@ -817,56 +892,32 @@ function renderTables() {
                 lastCodeForDisplay = actualCode;
             }
 
-            // --- SMART MERGE dengan Template In-Line & Archive Template ---
             let mergedSmv = '-';
             let mergedActual = '-';
-            let mergedSaving = '-';
-            let mergedRate = '-';
             let mergedVideoB = '';
             let mergedVideoA = '';
             let mergedTimestamp = '-';
-            
-            // Prioritas 1: Template In-Line (Data Live)
-            let matchData = findMatch(allData.templateInLine, actualCode, String(row.proses || '').trim());
-            
-            // Prioritas 2: Archive Template
-            let archData = findMatch(allData.archiveTemplate, actualCode, String(row.proses || '').trim());
-            
-            // Menggabungkan data: Archive sebagai dasar, In-Line menimpa jika ada nilainya
-            let finalMatch = null;
-            if (archData || matchData) {
-                finalMatch = {};
-                if (archData) Object.assign(finalMatch, archData);
-                if (matchData) {
-                    if (matchData.smv && String(matchData.smv).trim() !== '') finalMatch.smv = matchData.smv;
-                    if (matchData.actual && String(matchData.actual).trim() !== '') finalMatch.actual = matchData.actual;
-                    if (matchData.saving && String(matchData.saving).trim() !== '') finalMatch.saving = matchData.saving;
-                    if (matchData.rate && String(matchData.rate).trim() !== '') finalMatch.rate = matchData.rate;
-                    if (matchData.videoB && String(matchData.videoB).trim() !== '') finalMatch.videoB = matchData.videoB;
-                    if (matchData.videoA && String(matchData.videoA).trim() !== '') finalMatch.videoA = matchData.videoA;
-                    if (matchData.timestamp && String(matchData.timestamp).trim() !== '') finalMatch.timestamp = matchData.timestamp;
-                }
-            }
-            
+            let mergedRate = '-';
+
             let sCol = 'var(--text-dim)';
             let sStr = '-';
 
-            if (finalMatch) {
-                mergedSmv = finalMatch.smv || '-';
-                mergedActual = finalMatch.actual || '-';
-                mergedVideoB = finalMatch.videoB || '';
-                mergedVideoA = finalMatch.videoA || '';
-                mergedTimestamp = finalMatch.timestamp ? formatDateString(finalMatch.timestamp) : '-';
-                
-                let savingRaw = String(finalMatch.saving || '').trim();
+            if (row.finalMatch) {
+                mergedSmv = row.finalMatch.smv || '-';
+                mergedActual = row.finalMatch.actual || '-';
+                mergedVideoB = row.finalMatch.videoB || '';
+                mergedVideoA = row.finalMatch.videoA || '';
+                mergedTimestamp = row.finalMatch.timestamp ? formatDateString(row.finalMatch.timestamp) : '-';
+
+                let savingRaw = String(row.finalMatch.saving || '').trim();
                 if (savingRaw !== '') {
                     const sVal = parseFloat(savingRaw.replace(',', '.'));
                     const sNum = isNaN(sVal) ? 0 : sVal;
                     sCol = sNum > 0 ? 'var(--neon-green)' : (sNum < 0 ? 'var(--neon-red)' : 'var(--text-dim)');
                     sStr = !isNaN(sVal) ? sVal.toFixed(1) : '-';
                 }
-                
-                mergedRate = finalMatch.rate ? finalMatch.rate + (String(finalMatch.rate).includes('%') ? '' : '%') : '-';
+
+                mergedRate = row.finalMatch.rate ? row.finalMatch.rate + (String(row.finalMatch.rate).includes('%') ? '' : '%') : '-';
             }
 
             return `<tr>
@@ -899,7 +950,7 @@ function renderTables() {
 // ==========================
 function renderInventoryStats(validInv) {
     if (!validInv || !Array.isArray(validInv)) return;
-    
+
     // Filter only valid rows
     const filtered = validInv.filter(r => (r.code || '').trim() !== '' || (r.buyer || '').trim() !== '' || (r.proses || '').trim() !== '');
     if (filtered.length === 0) return;
@@ -1028,7 +1079,7 @@ function getPositionBadge(styleCode) {
 
 // Tambahkan pemanggilan di akhir renderTables agar selalu update saat data masuk
 const originalRenderTables = renderTables;
-renderTables = function() {
+renderTables = function () {
     originalRenderTables();
     renderPerformanceStats();
 };
@@ -1118,7 +1169,7 @@ function renderPerformanceStats() {
             const val = item[key];
             const pct = Math.round((Math.abs(val) / max) * 100);
             let medal = `${i + 1}.`;
-            
+
             if (!isNegative) {
                 if (i === 0) medal = '<i class="ph ph-trophy" style="color:#f59e0b;"></i>';
                 else if (i === 1) medal = '<i class="ph ph-crown" style="color:#94a3b8;"></i>';
@@ -1128,7 +1179,7 @@ function renderPerformanceStats() {
                 else if (i === 1) medal = '<i class="ph ph-warning" style="color:var(--neon-red);"></i>';
                 else if (i === 2) medal = '<i class="ph ph-info" style="color:var(--text-dim);"></i>';
             }
-            
+
             const displayVal = typeof val === 'number' ? (key === 'totalMinutes' ? val.toFixed(1) : val) : val;
 
             return `
@@ -1145,16 +1196,16 @@ function renderPerformanceStats() {
     };
 
     const setHtml = (id, v) => { const el = document.getElementById(id); if (el) el.innerHTML = v; };
-    
-    setHtml('rankRunning', buildRankList(statsArr.filter(r => r.running > 0).sort((a,b) => b.running - a.running), 'running', 'var(--neon-green)', 'Tidak ada data Running.'));
-    setHtml('rankNotUsed', buildRankList(statsArr.filter(r => r.not_used > 0).sort((a,b) => b.not_used - a.not_used), 'not_used', 'var(--neon-red)', 'Tidak ada data Not Used.', true));
-    setHtml('rankNoProcess', buildRankList(statsArr.filter(r => r.no_process > 0).sort((a,b) => b.no_process - a.no_process), 'no_process', 'var(--text-dim)', 'Tidak ada data No Process.', true));
-    setHtml('rankLayoutReq', buildRankList(statsArr.filter(r => r.layout > 0).sort((a,b) => b.layout - a.layout), 'layout', '#ea580c', 'Tidak ada request layout.'));
+
+    setHtml('rankRunning', buildRankList(statsArr.filter(r => r.running > 0).sort((a, b) => b.running - a.running), 'running', 'var(--neon-green)', 'Tidak ada data Running.'));
+    setHtml('rankNotUsed', buildRankList(statsArr.filter(r => r.not_used > 0).sort((a, b) => b.not_used - a.not_used), 'not_used', 'var(--neon-red)', 'Tidak ada data Not Used.', true));
+    setHtml('rankNoProcess', buildRankList(statsArr.filter(r => r.no_process > 0).sort((a, b) => b.no_process - a.no_process), 'no_process', 'var(--text-dim)', 'Tidak ada data No Process.', true));
+    setHtml('rankLayoutReq', buildRankList(statsArr.filter(r => r.layout > 0).sort((a, b) => b.layout - a.layout), 'layout', '#ea580c', 'Tidak ada request layout.'));
 
     // Render Saving Analysis
-    setHtml('rankAvgSaving', buildRankList(savingArr.filter(s => s.avgRate > 0).sort((a,b) => b.avgRate - a.avgRate), 'avgRate', 'var(--neon-cyan)', 'Belum ada data saving.', false, '%'));
-    setHtml('rankTotalSaving', buildRankList(savingArr.filter(s => s.totalMinutes > 0).sort((a,b) => b.totalMinutes - a.totalMinutes), 'totalMinutes', 'var(--neon-blue)', 'Belum ada data saving.', false, ' min'));
-    setHtml('rankPeakSaving', buildRankList(savingArr.filter(s => s.peakRate > 0).sort((a,b) => b.peakRate - a.peakRate), 'peakRate', '#a855f7', 'Belum ada rekor saving.', false, '%'));
+    setHtml('rankAvgSaving', buildRankList(savingArr.filter(s => s.avgRate > 0).sort((a, b) => b.avgRate - a.avgRate), 'avgRate', 'var(--neon-cyan)', 'Belum ada data saving.', false, '%'));
+    setHtml('rankTotalSaving', buildRankList(savingArr.filter(s => s.totalMinutes > 0).sort((a, b) => b.totalMinutes - a.totalMinutes), 'totalMinutes', 'var(--neon-blue)', 'Belum ada data saving.', false, ' min'));
+    setHtml('rankPeakSaving', buildRankList(savingArr.filter(s => s.peakRate > 0).sort((a, b) => b.peakRate - a.peakRate), 'peakRate', '#a855f7', 'Belum ada rekor saving.', false, '%'));
 
     // Idle Lines
     const idleLines = statsArr.filter(r => r.running === 0 && (r.not_used > 0 || r.no_process > 0 || r.layout > 0));
@@ -1294,14 +1345,14 @@ window.handleIELogout = function () {
 // ==========================
 // SPA VIEW SWITCHER (Used by Admin Tools buttons)
 // ==========================
-window.switchView = function(viewId) {
+window.switchView = function (viewId) {
     // Hide all tab views
     document.querySelectorAll('.tab-view').forEach(el => el.classList.add('hidden'));
-    
+
     // Show target view
     const target = document.getElementById(viewId);
     if (target) target.classList.remove('hidden');
-    
+
     // Trigger render for specific views
     if (viewId === 'view-admin-panel') {
         if (typeof renderAdminRequests === 'function') renderAdminRequests();
@@ -1311,7 +1362,7 @@ window.switchView = function(viewId) {
         updateCharts();
         updateStatusCards();
     }
-    
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 
@@ -1336,12 +1387,12 @@ window.executeAdminLogin = async function () {
         showToast('error', 'Sandi admin salah!');
         return;
     }
-    
+
     // As in Code.gs, admin password yields 'ctt_token_1994_secure'
     try {
         const response = await fetch(`${APPS_SCRIPT_URL}?action=login&password=${encodeURIComponent(pwd)}`);
         const res = await response.json();
-        
+
         if (res.status === 'success') {
             window.adminToken = res.token;
             sessionStorage.setItem('adminToken', res.token);
@@ -1363,25 +1414,25 @@ window.logoutAdmin = function () {
     window.isAdminMode = false;
     document.getElementById('adminModeToggle').checked = false;
     checkAdminState();
-    
+
     // Return to dashboard if in admin view
     const activeView = document.querySelector('.tab-view.active');
     if (activeView && ['view-admin-request', 'view-admin-report'].includes(activeView.id)) {
         switchView('view-dashboard');
     }
-    
+
     showToast('info', 'Admin Logout berhasil');
     renderTables();
 };
 
-window.toggleAdminMode = function(isActive) {
+window.toggleAdminMode = function (isActive) {
     if (!window.adminToken) {
         document.getElementById('adminModeToggle').checked = false;
         showToast('error', 'Silakan login admin terlebih dahulu.');
         return;
     }
     window.isAdminMode = isActive;
-    
+
     if (isActive) {
         document.querySelectorAll('.admin-only').forEach(el => el.classList.remove('hidden'));
         document.getElementById('adminToggleSlider').style.backgroundColor = '#f0f';
@@ -1391,23 +1442,23 @@ window.toggleAdminMode = function(isActive) {
         document.getElementById('adminToggleContainer').classList.remove('hidden'); // Keep toggle visible if logged in
         document.getElementById('adminToggleSlider').style.backgroundColor = '#ccc';
         document.getElementById('adminToggleSlider').style.boxShadow = 'none';
-        
+
         // Return to dashboard if in admin view
         const activeView = document.querySelector('.tab-view.active');
         if (activeView && ['view-admin-request', 'view-admin-report'].includes(activeView.id)) {
             switchView('view-dashboard');
         }
     }
-    
+
     // Update tables & UI based on admin mode
     renderTables();
 };
 
-window.checkAdminState = function() {
+window.checkAdminState = function () {
     const loginBtn = document.getElementById('adminLoginBtn');
     const toggleContainer = document.getElementById('adminToggleContainer');
-    if(!loginBtn || !toggleContainer) return;
-    
+    if (!loginBtn || !toggleContainer) return;
+
     if (window.adminToken) {
         loginBtn.innerHTML = '<i class="ph ph-sign-out"></i>';
         loginBtn.onclick = logoutAdmin;
@@ -1428,9 +1479,9 @@ window.checkAdminState = function() {
 // ADMIN API ACTIONS
 // ==========================
 
-window.adminEditRow = function(sheetName, rowIndex) {
+window.adminEditRow = function (sheetName, rowIndex) {
     if (!window.adminToken) return;
-    
+
     // Find the data row from local cache
     let rowData = null;
     if (sheetName === 'Template In-Line') {
@@ -1459,7 +1510,7 @@ window.adminEditRow = function(sheetName, rowIndex) {
     document.getElementById('adminEditLine').value = rowData.line || '';
     document.getElementById('adminEditStyle').value = rowData.style || rowData.buyer || '';
     document.getElementById('adminEditProses').value = rowData.proses || '';
-    
+
     const statusSelect = document.getElementById('adminEditStatus');
     const rowStatus = (rowData.status || '').toLowerCase();
     Array.from(statusSelect.options).forEach(opt => {
@@ -1469,14 +1520,14 @@ window.adminEditRow = function(sheetName, rowIndex) {
     document.getElementById('modalAdminEdit').classList.remove('hidden');
 };
 
-window.closeAdminEditModal = function() {
+window.closeAdminEditModal = function () {
     document.getElementById('modalAdminEdit').classList.add('hidden');
 };
 
-window.saveAdminEdit = async function(e) {
+window.saveAdminEdit = async function (e) {
     e.preventDefault();
     if (!window.adminToken) return;
-    
+
     const btn = e.target.querySelector('button[type="submit"]');
     btn.innerHTML = '<i class="ph ph-spinner-gap spin"></i> Menyimpan...';
     btn.disabled = true;
@@ -1511,7 +1562,7 @@ window.saveAdminEdit = async function(e) {
     }
 };
 
-window.deleteSingleRow = async function(sheetName, rowIndex, btnElem) {
+window.deleteSingleRow = async function (sheetName, rowIndex, btnElem) {
     if (!window.adminToken) return;
     if (!confirm('PERINGATAN! Anda akan menghapus baris data ini selamanya dari Google Sheets. Lanjutkan?')) return;
 
@@ -1539,13 +1590,13 @@ window.deleteSingleRow = async function(sheetName, rowIndex, btnElem) {
     }
 };
 
-window.insertAjaib = async function(sheetName, rIndex, lineInfo) {
+window.insertAjaib = async function (sheetName, rIndex, lineInfo) {
     if (!window.adminToken) return;
     if (!confirm(`Menyisipkan ruangan baru persis di bawah baris ini?`)) return;
 
     showToast('info', 'Menyisipkan baris baru...');
     let targetSheet = sheetName === 'Template In-Line' ? 'Sheet2' : sheetName;
-    
+
     try {
         const payload = { action: 'insertRow', sheetName: targetSheet, rowIndex: rIndex, line: lineInfo, token: window.adminToken };
         const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify(payload) });
@@ -1554,18 +1605,18 @@ window.insertAjaib = async function(sheetName, rIndex, lineInfo) {
         if (resJson.status === 'success') {
             showToast('success', 'Baris berhasil terbuat!');
             loadAllDataFallback();
-        } else { 
-            throw new Error(resJson.message); 
+        } else {
+            throw new Error(resJson.message);
         }
-    } catch (e) { 
-        showToast('error', 'Gagal menyisip: ' + e); 
+    } catch (e) {
+        showToast('error', 'Gagal menyisip: ' + e);
     }
 };
 
-window.adminCompleteLayout = async function(line, style) {
+window.adminCompleteLayout = async function (line, style) {
     if (!window.adminToken) return;
     if (!confirm(`Tandai Layout untuk Line ${line} (Style ${style}) sebagai SELESAI? Ini akan memindahkan data ke Factory/Archive.`)) return;
-    
+
     showToast('info', 'Memproses...');
     try {
         const res = await fetch(APPS_SCRIPT_URL, { method: 'POST', body: JSON.stringify({ action: 'completeLayout', line: line, style: style, token: window.adminToken }) });
@@ -1576,7 +1627,7 @@ window.adminCompleteLayout = async function(line, style) {
         } else {
             throw new Error(resJson.message);
         }
-    } catch (e) { 
+    } catch (e) {
         showToast('error', 'Gagal update layout: ' + e);
     }
 };
@@ -1585,7 +1636,7 @@ window.adminCompleteLayout = async function(line, style) {
 // REQUEST RENDER (Admin) & WA SHARE UI
 // ==========================
 
-window.renderWaShareButtons = function() {
+window.renderWaShareButtons = function () {
     const container = document.getElementById('waShareLineContainer');
     if (!container) return;
     let html = '';
@@ -1595,20 +1646,20 @@ window.renderWaShareButtons = function() {
     container.innerHTML = html;
 };
 
-window.renderAdminRequests = function() {
+window.renderAdminRequests = function () {
     const tbody = document.querySelector('#tblAdminRequest tbody');
     if (!tbody) return;
 
     if (allData.layoutRequests && allData.layoutRequests.length > 0) {
         tbody.innerHTML = allData.layoutRequests.slice().reverse().map(row => {
-            let aksiBtn = `<button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.7rem; background:rgba(0,191,255,0.1); border:1px solid var(--neon-cyan); color:var(--neon-cyan);" onclick="adminCompleteLayout('${escapeHtml(row.line||'')}', '${escapeHtml(row.style||'')}')">Tandai Selesai</button>`;
-            
+            let aksiBtn = `<button class="action-btn" style="padding:0.2rem 0.5rem; font-size:0.7rem; background:rgba(0,191,255,0.1); border:1px solid var(--neon-cyan); color:var(--neon-cyan);" onclick="adminCompleteLayout('${escapeHtml(row.line || '')}', '${escapeHtml(row.style || '')}')">Tandai Selesai</button>`;
+
             return `
             <tr>
                 <td style="white-space:nowrap;"><span style="font-size:0.75rem; color:var(--text-dim);">${row.timestamp || '-'}</span></td>
                 <td><span class="badge" style="background:rgba(79,70,229,0.05); border:1px solid rgba(79,70,229,0.1); color:#4f46e5;">${row.line || '-'}</span></td>
                 <td style="font-weight: 500;">${row.style || '-'}</span></td>
-                <td style="text-align:center;">${(row.status_penyelesaian||'').toLowerCase().includes('selesai') ? '<span class="badge bg-green">Selesai</span>' : aksiBtn}</td>
+                <td style="text-align:center;">${(row.status_penyelesaian || '').toLowerCase().includes('selesai') ? '<span class="badge bg-green">Selesai</span>' : aksiBtn}</td>
             </tr>`;
         }).join('');
     } else {
@@ -1616,7 +1667,7 @@ window.renderAdminRequests = function() {
     }
 };
 
-window.renderAdminReport = function() {
+window.renderAdminReport = function () {
     const tbody = document.querySelector('#tblAdminReport tbody');
     if (!tbody) return;
 
@@ -1640,18 +1691,18 @@ window.renderAdminReport = function() {
 // ==========================
 // PENGUMUMAN API (Admin)
 // ==========================
-window.openPengumumanModal = function() {
+window.openPengumumanModal = function () {
     document.getElementById('modalPengumuman').classList.remove('hidden');
 };
 
-window.closePengumumanModal = function() {
+window.closePengumumanModal = function () {
     document.getElementById('modalPengumuman').classList.add('hidden');
 };
 
-window.setPengumuman = async function() {
+window.setPengumuman = async function () {
     const text = document.getElementById('adminPengumuman').value.trim();
     if (!text) { showToast('error', 'Teks pengumuman tidak boleh kosong'); return; }
-    
+
     showToast('info', 'Mengirim pengumuman...');
     try {
         const payload = { action: 'addPengumuman', text: text, token: window.adminToken };
@@ -1666,7 +1717,7 @@ window.setPengumuman = async function() {
     } catch (e) { showToast('error', 'Gagal set: ' + e); }
 };
 
-window.stopPengumuman = async function() {
+window.stopPengumuman = async function () {
     showToast('info', 'Menghapus pengumuman...');
     try {
         const payload = { action: 'deletePengumuman', token: window.adminToken };
@@ -1784,10 +1835,10 @@ function openLineDataModal(lineNum) {
             let adminCol = '';
             if (window.isAdminMode) {
                 adminCol = `<td class="admin-only" style="text-align:center; white-space:nowrap;">
-                    <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(0,191,255,0.1); border:1px solid var(--neon-cyan); color:var(--neon-cyan);" onclick="adminCompleteLayout('${escapeHtml(row.line||'')}', '${escapeHtml(row.style||'')}')" title="Selesaikan Layout"><i class="ph ph-check-square-offset"></i></button>
+                    <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(0,191,255,0.1); border:1px solid var(--neon-cyan); color:var(--neon-cyan);" onclick="adminCompleteLayout('${escapeHtml(row.line || '')}', '${escapeHtml(row.style || '')}')" title="Selesaikan Layout"><i class="ph ph-check-square-offset"></i></button>
                     <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(0,255,136,0.1); border:1px solid var(--neon-green); color:var(--neon-green);" onclick="adminEditRow('Factory ${lineNum <= 12 ? 'A' : 'B'}', ${row.rowIndex})" title="Edit"><i class="ph ph-pencil-simple"></i></button>
                     <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(255,0,85,0.1); border:1px solid var(--neon-red); color:var(--neon-red);" onclick="deleteSingleRow('Factory ${lineNum <= 12 ? 'A' : 'B'}', ${row.rowIndex}, this)" title="Delete"><i class="ph ph-trash"></i></button>
-                    <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(255,184,0,0.1); border:1px solid #f59e0b; color:#f59e0b;" onclick="insertAjaib('Factory ${lineNum <= 12 ? 'A' : 'B'}', ${row.rowIndex}, '${escapeHtml(row.line||'')}')" title="Sisip Baris"><i class="ph ph-plus"></i></button>
+                    <button class="action-btn" style="padding:0.2rem 0.4rem; font-size:0.7rem; background:rgba(255,184,0,0.1); border:1px solid #f59e0b; color:#f59e0b;" onclick="insertAjaib('Factory ${lineNum <= 12 ? 'A' : 'B'}', ${row.rowIndex}, '${escapeHtml(row.line || '')}')" title="Sisip Baris"><i class="ph ph-plus"></i></button>
                 </td>`;
             }
 
@@ -2123,7 +2174,8 @@ function initOCRExpanded() {
     // Execute Smart Search Code (Live Data Scanning)
     document.getElementById('execSearchBtn').addEventListener('click', () => {
         const query = document.getElementById('smartSearchInputModal').value.toLowerCase();
-        if (query.length < 5) { showToast('error', 'Masukkan info > 5 karakter.'); return; }
+        const isAllStyle = document.getElementById('chkAllStyle').checked;
+        if (!isAllStyle && query.length < 5) { showToast('error', 'Masukkan info > 5 karakter.'); return; }
 
         // Membaca opsi form sebagai fallback jika database sheet tidak menyediakan Brand
         const brandSelect = document.getElementById('searchBrand');
@@ -2142,12 +2194,47 @@ function initOCRExpanded() {
         setTimeout(() => {
             let foundHTML = '';
 
+            // Ambil value dari dropdown brand untuk filter
+            const selectedBrand = document.getElementById('searchBrand').value;
+
+            const isMatch = (r) => {
+                // Filter brand: berlaku untuk semua mode pencarian
+                if (selectedBrand) {
+                    const rowBuyer = (r.buyer || '').toLowerCase();
+                    if (!rowBuyer.includes(selectedBrand.toLowerCase())) return false;
+                }
+                if (isAllStyle) return true;
+                return (r.style || '').toLowerCase().includes(query) || (r.code || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query);
+            };
+
             // Desain Card-like untuk tiap hasil
             const cardStyle = "background:rgba(255,255,255,0.02); border:1px solid rgba(0,191,255,0.2); border-radius:6px; padding:1.2rem; margin-bottom:1rem; font-size:0.95rem; line-height:1.6;";
             const labelStyle = "color:var(--text-dim); display:inline-block; width:70px;";
+
+            const renderDataMetrics = (smv, act, sav, rate) => {
+                if (!smv && !act) return '';
+                let sCol = 'var(--text-dim)';
+                let sStr = '-';
+                if (sav && String(sav).trim() !== '') {
+                    const sVal = parseFloat(String(sav).replace(',', '.'));
+                    const sNum = isNaN(sVal) ? 0 : sVal;
+                    sCol = sNum > 0 ? 'var(--neon-green)' : (sNum < 0 ? 'var(--neon-red)' : 'var(--text-dim)');
+                    sStr = !isNaN(sVal) ? sVal.toFixed(1) : '-';
+                }
+                let rateStr = rate ? (String(rate).includes('%') ? rate : rate + '%') : '-';
+
+                return `
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.8rem; background:rgba(0,0,0,0.2); padding:0.8rem; border-radius:6px; border:1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);font-size:0.8rem;">SMV:</span> <span style="color:var(--neon-blue);font-weight:bold;">${smv || '-'}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);font-size:0.8rem;">Actual:</span> <span style="font-weight:bold;color:#fff;">${act || '-'}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);font-size:0.8rem;">Saving:</span> <span style="color:${sCol};font-weight:bold;">${sStr}</span></div>
+                    <div style="display:flex; justify-content:space-between;"><span style="color:var(--text-dim);font-size:0.8rem;">Rate:</span> <span style="font-weight:bold;color:#fff;">${rateStr}</span></div>
+                </div>`;
+            };
+
             const renderVideoRow = (vB, vA) => {
                 let html = '';
-                if(vB || vA) {
+                if (vB || vA) {
                     html += `<div style="margin-top:0.8rem; display:flex; gap:0.5rem; border-top:1px dashed rgba(255,255,255,0.1); padding-top:0.8rem;">`;
                     if (vB) html += `<button class="video-pill video-pill-before" style="flex:1;" onclick="openVideoPlayer('${vB}','Video Before')"><i class="ph ph-play-circle"></i> Video Before</button>`;
                     if (vA) html += `<button class="video-pill video-pill-after" style="flex:1;" onclick="openVideoPlayer('${vA}','Video After')"><i class="ph ph-play-circle"></i> Video After</button>`;
@@ -2156,42 +2243,147 @@ function initOCRExpanded() {
                 return html;
             };
 
+            // === HELPER: Render satu blok proses di dalam kartu ===
+            const renderProcessBlock = (prosesName, status, smv, act, sav, rate, vB, vA) => {
+                let html = `<div style="border:1px solid rgba(255,255,255,0.08); border-radius:6px; padding:0.8rem; margin-top:0.6rem; background:rgba(255,255,255,0.02);">`;
+                html += `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">`;
+                html += `<span style="color:var(--neon-cyan); font-weight:bold; font-size:0.9rem;"><i class="ph ph-gear"></i> ${prosesName || '-'}</span>`;
+                html += `<span class="badge ${getStatusBadge(status)}" style="font-size:0.75rem; padding:0.2rem 0.6rem;">${status || 'Unknown'}</span>`;
+                html += `</div>`;
+                html += renderDataMetrics(smv, act, sav, rate);
+                html += renderVideoRow(vB, vA);
+                html += `</div>`;
+                return html;
+            };
+
+            // === HELPER: Ambil metrik lengkap dari archive/template ===
+            const getMetrics = (styleKey, prosesKey) => {
+                let t = allData.templateInLine ? allData.templateInLine.find(a => String(a.style || a.code || '').toLowerCase() === styleKey && String(a.proses || '').toLowerCase() === prosesKey) : null;
+                let a = allData.archiveTemplate ? allData.archiveTemplate.find(a => String(a.style || '').toLowerCase() === styleKey && String(a.proses || '').toLowerCase() === prosesKey) : null;
+                return {
+                    smv: (t && t.smv) || (a && a.smv) || '',
+                    actual: (t && t.actual) || (a && a.actual) || '',
+                    saving: (t && t.saving) || (a && a.saving) || '',
+                    rate: (t && t.rate) || (a && a.rate) || '',
+                    videoB: (t && t.videoB) || (a && a.videoB) || '',
+                    videoA: (t && t.videoA) || (a && a.videoA) || ''
+                };
+            };
+
+            // Deteksi: pencarian berdasarkan style atau proses?
+            // Jika query cocok dengan field style/code → group by style
+            // Jika query hanya cocok dengan field proses → tampilkan individual (logika lama)
+            const isStyleSearch = isAllStyle || (query.length >= 5 && allData.templateInLine && allData.templateInLine.some(r => (r.style || '').toLowerCase().includes(query) || (r.code || '').toLowerCase().includes(query)));
+
             // 1. Pencarian di Template
             if (allData.templateInLine) {
-                const results = allData.templateInLine.filter(r => (r.style || '').toLowerCase().includes(query) || (r.code || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
-                results.slice(0, 10).forEach(f => {
-                    foundHTML += `<div style="${cardStyle}">
-                        <div style="color:var(--neon-green); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,255,136,0.2); padding-bottom:0.5rem;"><i class="ph ph-grid-four"></i> Template In-Line [Line ${f.line || '-'}]</div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || fallbackBuyer}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.style || f.code || '-'}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
-                        <div style="margin-top:0.8rem;"><span class="badge ${getStatusBadge(f.status)}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
-                        ${renderVideoRow(f.videoB, f.videoA)}
-                    </div>`;
-                });
+                const results = allData.templateInLine.filter(isMatch);
+                const limit = isAllStyle ? 9999 : 10;
+
+                if (isStyleSearch) {
+                    // === MODE STYLE: Group by style, semua proses dalam 1 kartu ===
+                    const grouped = {};
+                    results.forEach(f => {
+                        const key = (f.style || f.code || '-').toLowerCase();
+                        if (!grouped[key]) grouped[key] = [];
+                        grouped[key].push(f);
+                    });
+                    const styleKeys = Object.keys(grouped).slice(0, limit);
+                    styleKeys.forEach(key => {
+                        const rows = grouped[key];
+                        const first = rows[0];
+                        let processesHTML = '';
+                        rows.forEach(f => {
+                            let arch = allData.archiveTemplate ? allData.archiveTemplate.find(a => String(a.style || '').toLowerCase() === key && String(a.proses || '').toLowerCase() === String(f.proses || '').toLowerCase()) : null;
+                            let rSmv = f.smv || (arch ? arch.smv : '');
+                            let rAct = f.actual || (arch ? arch.actual : '');
+                            let rSav = f.saving || (arch ? arch.saving : '');
+                            let rRate = f.rate || (arch ? arch.rate : '');
+                            let vB = f.videoB || (arch ? arch.videoB : '');
+                            let vA = f.videoA || (arch ? arch.videoA : '');
+                            processesHTML += renderProcessBlock(f.proses, f.status, rSmv, rAct, rSav, rRate, vB, vA);
+                        });
+                        foundHTML += `<div style="${cardStyle}">
+                            <div style="color:var(--neon-green); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,255,136,0.2); padding-bottom:0.5rem;"><i class="ph ph-grid-four"></i> Template In-Line [Line ${first.line || '-'}]</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${first.buyer || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${first.style || first.code || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:var(--neon-cyan);">${rows.length} proses</span></div>
+                            ${processesHTML}
+                        </div>`;
+                    });
+                } else {
+                    // === MODE PROSES: 1 kartu per baris (logika lama) ===
+                    results.slice(0, limit).forEach(f => {
+                        let arch = allData.archiveTemplate ? allData.archiveTemplate.find(a => String(a.style || '').toLowerCase() === String(f.style || f.code || '').toLowerCase() && String(a.proses || '').toLowerCase() === String(f.proses || '').toLowerCase()) : null;
+                        let rSmv = f.smv || (arch ? arch.smv : '');
+                        let rAct = f.actual || (arch ? arch.actual : '');
+                        let rSav = f.saving || (arch ? arch.saving : '');
+                        let rRate = f.rate || (arch ? arch.rate : '');
+                        let vB = f.videoB || (arch ? arch.videoB : '');
+                        let vA = f.videoA || (arch ? arch.videoA : '');
+                        foundHTML += `<div style="${cardStyle}">
+                            <div style="color:var(--neon-green); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,255,136,0.2); padding-bottom:0.5rem;"><i class="ph ph-grid-four"></i> Template In-Line [Line ${f.line || '-'}]</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.style || f.code || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
+                            <div style="margin-top:0.8rem;"><span class="badge ${getStatusBadge(f.status)}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
+                            ${renderDataMetrics(rSmv, rAct, rSav, rRate)}
+                            ${renderVideoRow(vB, vA)}
+                        </div>`;
+                    });
+                }
             }
 
             // 2. Helper Pencarian di Factory Objects
             const findFac = (facObj, title, icon, color) => {
                 if (!facObj) return;
+                const allHits = [];
                 for (const [line, arr] of Object.entries(facObj)) {
                     if (!Array.isArray(arr)) continue;
-                    const results = arr.filter(r => (r.style || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
-                    results.slice(0, 10).forEach(hit => {
-                        // Attempt to find video in archive template
-                        let vB = hit.videoB || '';
-                        let vA = hit.videoA || '';
-                        if (!vB && !vA && allData.archiveTemplate) {
-                           const arch = allData.archiveTemplate.find(a => String(a.style||'').toLowerCase() === String(hit.style||'').toLowerCase() && String(a.proses||'').toLowerCase() === String(hit.proses||'').toLowerCase());
-                           if (arch) { vB = arch.videoB; vA = arch.videoA; }
-                        }
-                        
+                    arr.filter(isMatch).forEach(hit => allHits.push({ ...hit, _line: line }));
+                }
+                const limit = isAllStyle ? 9999 : 10;
+
+                if (isStyleSearch) {
+                    // === MODE STYLE: Group by style ===
+                    const grouped = {};
+                    allHits.forEach(hit => {
+                        const key = (hit.style || '-').toLowerCase();
+                        if (!grouped[key]) grouped[key] = [];
+                        grouped[key].push(hit);
+                    });
+                    const styleKeys = Object.keys(grouped).slice(0, limit);
+                    styleKeys.forEach(key => {
+                        const rows = grouped[key];
+                        const first = rows[0];
+                        let processesHTML = '';
+                        rows.forEach(hit => {
+                            const m = getMetrics(key, String(hit.proses || '').toLowerCase());
+                            let vB = hit.videoB || m.videoB;
+                            let vA = hit.videoA || m.videoA;
+                            processesHTML += renderProcessBlock(hit.proses, hit.status, m.smv, m.actual, m.saving, m.rate, vB, vA);
+                        });
                         foundHTML += `<div style="${cardStyle}">
-                            <div style="color:var(${color}); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.5rem;"><i class="ph ${icon}"></i> ${title} [${line}]</div>
-                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${hit.buyer || fallbackBuyer}</span></div>
+                            <div style="color:var(${color}); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.5rem;"><i class="ph ${icon}"></i> ${title} [${first._line}]</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${first.buyer || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${first.style || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:var(--neon-cyan);">${rows.length} proses</span></div>
+                            ${processesHTML}
+                        </div>`;
+                    });
+                } else {
+                    // === MODE PROSES: 1 kartu per baris (logika lama) ===
+                    allHits.slice(0, limit).forEach(hit => {
+                        const m = getMetrics(String(hit.style || '').toLowerCase(), String(hit.proses || '').toLowerCase());
+                        let vB = hit.videoB || m.videoB;
+                        let vA = hit.videoA || m.videoA;
+                        foundHTML += `<div style="${cardStyle}">
+                            <div style="color:var(${color}); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.5rem;"><i class="ph ${icon}"></i> ${title} [${hit._line}]</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${hit.buyer || '-'}</span></div>
                             <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${hit.style || '-'}</span></div>
                             <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${hit.proses || '-'}</span></div>
                             <div style="margin-top:0.8rem;"><span class="badge ${getStatusBadge(hit.status)}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${hit.status || 'Unknown'}</span></div>
+                            ${renderDataMetrics(m.smv, m.actual, m.saving, m.rate)}
                             ${renderVideoRow(vB, vA)}
                         </div>`;
                     });
@@ -2202,25 +2394,55 @@ function initOCRExpanded() {
 
             // 3. Pencarian di Inventory
             if (allData.inventory) {
-                const results = allData.inventory.filter(r => (r.code || '').toLowerCase().includes(query) || (r.buyer || '').toLowerCase().includes(query) || (r.proses || '').toLowerCase().includes(query));
-                results.slice(0, 10).forEach(f => {
-                    let vB = ''; let vA = '';
-                    if (allData.archiveTemplate) {
-                        const arch = allData.archiveTemplate.find(a => String(a.style||'').toLowerCase() === String(f.code||'').toLowerCase() && String(a.proses||'').toLowerCase() === String(f.proses||'').toLowerCase());
-                        if (arch) { vB = arch.videoB; vA = arch.videoA; }
-                    }
-                    foundHTML += `<div style="${cardStyle}">
-                        <div style="color:var(--neon-orange); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(249,115,22,0.2); padding-bottom:0.5rem;"><i class="ph ph-package"></i> Data Gudang (Inventory)</div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Tanggal:</span> <span style="color:#fff;">${f.tanggal || '-'}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || fallbackBuyer}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.code || '-'}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
-                        <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Qty:</span> <span style="color:#fff;">${f.qty || '-'} Pcs</span> <span style="${labelStyle}; width:auto; margin-left:1rem;">Size:</span> <span style="color:#fff;">${f.size || '-'}</span></div>
-                        <div style="margin-bottom:0.6rem; margin-top:0.8rem;"><span style="${labelStyle}; width:auto; margin-right:0.5rem;">Lokasi Fisik Barang:</span> ${getPositionBadge(f.code) || '-'}</div>
-                        <div style="margin-top:0.3rem;"><span class="badge ${getStatusBadge(f.status || '')}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
-                        ${renderVideoRow(vB, vA)}
-                    </div>`;
-                });
+                const results = allData.inventory.filter(isMatch);
+                const limit = isAllStyle ? 9999 : 10;
+
+                if (isStyleSearch) {
+                    // === MODE STYLE: Group by style ===
+                    const grouped = {};
+                    results.forEach(f => {
+                        const key = (f.code || '-').toLowerCase();
+                        if (!grouped[key]) grouped[key] = [];
+                        grouped[key].push(f);
+                    });
+                    const styleKeys = Object.keys(grouped).slice(0, limit);
+                    styleKeys.forEach(key => {
+                        const rows = grouped[key];
+                        const first = rows[0];
+                        let processesHTML = '';
+                        rows.forEach(f => {
+                            const m = getMetrics(key, String(f.proses || '').toLowerCase());
+                            processesHTML += renderProcessBlock(f.proses, f.status, m.smv, m.actual, m.saving, m.rate, m.videoB, m.videoA);
+                        });
+                        foundHTML += `<div style="${cardStyle}">
+                            <div style="color:var(--neon-orange); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(249,115,22,0.2); padding-bottom:0.5rem;"><i class="ph ph-package"></i> Data Gudang (Inventory)</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Tanggal:</span> <span style="color:#fff;">${first.tanggal || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${first.buyer || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${first.code || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Qty:</span> <span style="color:#fff;">${first.qty || '-'} Pcs</span> <span style="${labelStyle}; width:auto; margin-left:1rem;">Size:</span> <span style="color:#fff;">${first.size || '-'}</span></div>
+                            <div style="margin-bottom:0.6rem; margin-top:0.8rem;"><span style="${labelStyle}; width:auto; margin-right:0.5rem;">Lokasi Fisik Barang:</span> ${getPositionBadge(first.code) || '-'}</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:var(--neon-cyan);">${rows.length} proses</span></div>
+                            ${processesHTML}
+                        </div>`;
+                    });
+                } else {
+                    // === MODE PROSES: 1 kartu per baris (logika lama) ===
+                    results.slice(0, limit).forEach(f => {
+                        const m = getMetrics(String(f.code || '').toLowerCase(), String(f.proses || '').toLowerCase());
+                        foundHTML += `<div style="${cardStyle}">
+                            <div style="color:var(--neon-orange); font-size:1.1rem; font-weight:bold; margin-bottom:0.8rem; border-bottom:1px solid rgba(249,115,22,0.2); padding-bottom:0.5rem;"><i class="ph ph-package"></i> Data Gudang (Inventory)</div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Tanggal:</span> <span style="color:#fff;">${f.tanggal || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Buyer:</span> <span style="color:#fff;">${f.buyer || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Style:</span> <span style="color:#fff; font-weight:bold;">${f.code || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Proses:</span> <span style="color:#fff;">${f.proses || '-'}</span></div>
+                            <div style="margin-bottom:0.3rem;"><span style="${labelStyle}">Qty:</span> <span style="color:#fff;">${f.qty || '-'} Pcs</span> <span style="${labelStyle}; width:auto; margin-left:1rem;">Size:</span> <span style="color:#fff;">${f.size || '-'}</span></div>
+                            <div style="margin-bottom:0.6rem; margin-top:0.8rem;"><span style="${labelStyle}; width:auto; margin-right:0.5rem;">Lokasi Fisik Barang:</span> ${getPositionBadge(f.code) || '-'}</div>
+                            <div style="margin-top:0.3rem;"><span class="badge ${getStatusBadge(f.status || '')}" style="font-size:0.9rem; padding:0.4rem 0.8rem;">${f.status || 'Unknown'}</span></div>
+                            ${renderDataMetrics(m.smv, m.actual, m.saving, m.rate)}
+                            ${renderVideoRow(m.videoB, m.videoA)}
+                        </div>`;
+                    });
+                }
             }
 
             resList.innerHTML = foundHTML || '<div style="color:var(--text-dim); text-align:center; padding:3rem;"><i class="ph ph-warning" style="font-size:3rem; margin-bottom:1rem;"></i><br>Oops, obyek tidak ditemukan di riwayat manapun.</div>';
@@ -2298,14 +2520,14 @@ function toggleDesktopMode() {
     document.body.classList.toggle('desktop-mode');
     const isOn = document.body.classList.contains('desktop-mode');
     localStorage.setItem('desktop-mode', isOn ? 'on' : 'off');
-    
+
     const icon = document.querySelector('#desktopToggleBtn i');
     if (icon) {
         icon.className = isOn ? 'ph ph-laptop' : 'ph ph-monitor';
     }
-    
+
     showToast('info', isOn ? 'Desktop Mode Active' : 'Mobile Mode Active');
-    
+
     // Refresh chart jika diperlukan agar ukurannya pas
     if (typeof updateCharts === 'function') updateCharts();
 }
@@ -2687,7 +2909,7 @@ window.openIeModalPublicFromArchive = function (line, style, proses, smv, actual
 
     // Tampilkan info baris + data sebelumnya (jika ada)
     let descHtml = 'Line: <strong>' + line + '</strong><br>Style: <strong>' + style + '</strong><br>Proses: <strong>' + proses + '</strong>';
-    
+
     // Tampilkan data sebelumnya agar IE tahu
     const hasPrevData = smvClean || actualClean || videoB || videoA;
     if (hasPrevData) {
@@ -3001,7 +3223,7 @@ window.handleVideoUpload = async function () {
         // Step 3: Build filename
         const now = new Date();
         const pad = (n) => String(n).padStart(2, '0');
-        const dateStr = `${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+        const dateStr = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
         const ext = mimeType === 'video/mp4' ? '.mp4' : (file.name.includes('.') ? file.name.substring(file.name.lastIndexOf('.')) : '.mp4');
         const finalFileName = `${videoName.replace(/[^a-zA-Z0-9_\-\s]/g, '').replace(/\s+/g, '_')}_${dateStr}${ext}`;
 
@@ -3145,19 +3367,19 @@ document.addEventListener('DOMContentLoaded', () => {
 // ADMIN HUB FUNCTIONS
 // ==========================
 
-window.openPengumumanModal = function() {
+window.openPengumumanModal = function () {
     const modal = document.getElementById('modalPengumuman');
     if (modal) modal.classList.remove('hidden');
 };
 
-window.closePengumumanModal = function() {
+window.closePengumumanModal = function () {
     const modal = document.getElementById('modalPengumuman');
     if (modal) modal.classList.add('hidden');
 };
 
-window.setPengumuman = function() {
+window.setPengumuman = function () {
     const text = document.getElementById('adminPengumuman').value;
-    if(!text) {
+    if (!text) {
         showToast('Teks tidak boleh kosong', 'error');
         return;
     }
@@ -3165,52 +3387,52 @@ window.setPengumuman = function() {
     const formData = new URLSearchParams();
     formData.append('action', 'setPengumuman');
     formData.append('text', text);
-    
+
     fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: formData
     })
-    .then(() => {
-        hideLoading();
-        showToast('Pengumuman berhasil disiarkan', 'success');
-        closePengumumanModal();
-        forceRefreshData();
-    })
-    .catch(err => {
-        hideLoading();
-        showToast('Gagal menyiarkan pengumuman', 'error');
-    });
+        .then(() => {
+            hideLoading();
+            showToast('Pengumuman berhasil disiarkan', 'success');
+            closePengumumanModal();
+            forceRefreshData();
+        })
+        .catch(err => {
+            hideLoading();
+            showToast('Gagal menyiarkan pengumuman', 'error');
+        });
 };
 
-window.stopPengumuman = function() {
-    if(!confirm('Matikan pengumuman saat ini?')) return;
+window.stopPengumuman = function () {
+    if (!confirm('Matikan pengumuman saat ini?')) return;
     showLoading('Mematikan pengumuman...');
     const formData = new URLSearchParams();
     formData.append('action', 'setPengumuman');
     formData.append('text', '');
-    
+
     fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: formData
     })
-    .then(() => {
-        hideLoading();
-        showToast('Pengumuman dimatikan', 'success');
-        closePengumumanModal();
-        forceRefreshData();
-    })
-    .catch(err => {
-        hideLoading();
-        showToast('Gagal mematikan pengumuman', 'error');
-    });
+        .then(() => {
+            hideLoading();
+            showToast('Pengumuman dimatikan', 'success');
+            closePengumumanModal();
+            forceRefreshData();
+        })
+        .catch(err => {
+            hideLoading();
+            showToast('Gagal mematikan pengumuman', 'error');
+        });
 };
 
-window.renderAdminRequestTable = function() {
+window.renderAdminRequestTable = function () {
     const tbody = document.querySelector('#tblAdminRequest tbody');
     if (!tbody) return;
-    
+
     let sourceData = allData.antrean || allData.layoutRequests || [];
     if (!sourceData || sourceData.length === 0) {
         tbody.innerHTML = '<tr><td colspan="4" class="text-center">Belum ada antrean / Tidak ada data</td></tr>';
@@ -3238,25 +3460,130 @@ window.renderAdminRequestTable = function() {
     tbody.innerHTML = validHTML.trim() === '' ? '<tr><td colspan="4" class="text-center">Semua antrean sudah selesai / Tidak ada antrean baru</td></tr>' : validHTML;
 };
 
-window.deleteAdminRequest = function(index) {
-    if(!confirm('Tandai antrean ini selesai/hapus?')) return;
+window.deleteAdminRequest = function (index) {
+    if (!confirm('Tandai antrean ini selesai/hapus?')) return;
     showLoading('Menghapus antrean...');
     const formData = new URLSearchParams();
     formData.append('action', 'deleteAntrean');
     formData.append('index', index);
-    
+
     fetch(APPS_SCRIPT_URL, {
         method: 'POST',
         mode: 'no-cors',
         body: formData
     })
-    .then(() => {
-        hideLoading();
-        showToast('Antrean diselesaikan', 'success');
-        forceRefreshData();
-    })
-    .catch(err => {
-        hideLoading();
-        showToast('Gagal menyelesaikan antrean', 'error');
-    });
+        .then(() => {
+            hideLoading();
+            showToast('Antrean diselesaikan', 'success');
+            forceRefreshData();
+        })
+        .catch(err => {
+            hideLoading();
+            showToast('Gagal menyelesaikan antrean', 'error');
+        });
+};
+
+// ==========================
+// IE STOPWATCH FUNCTIONS
+// ==========================
+let swStartTime = 0;
+let swElapsedTime = 0;
+let swTimerInterval = null;
+let swResultSmv = 0;
+
+window.openIeStopwatch = function () {
+    const modal = document.getElementById('modalIeStopwatch');
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeIeStopwatch = function () {
+    const modal = document.getElementById('modalIeStopwatch');
+    if (modal) modal.classList.add('hidden');
+    // Jika tidak ingin reset otomatis saat ditutup, comment line di bawah
+    // resetIeStopwatch();
+};
+
+window.startIeStopwatch = function () {
+    document.getElementById('btnSwStart').style.display = 'none';
+    document.getElementById('btnSwStop').style.display = 'block';
+    document.getElementById('stopwatchResults').classList.add('hidden');
+    document.getElementById('btnSwUse').classList.add('hidden');
+
+    swStartTime = Date.now() - swElapsedTime;
+    swTimerInterval = setInterval(() => {
+        swElapsedTime = Date.now() - swStartTime;
+        updateStopwatchDisplay();
+    }, 10);
+};
+
+window.stopIeStopwatch = function () {
+    document.getElementById('btnSwStop').style.display = 'none';
+    document.getElementById('btnSwStart').style.display = 'block';
+    clearInterval(swTimerInterval);
+    calculateStopwatchResults();
+};
+
+window.resetIeStopwatch = function () {
+    clearInterval(swTimerInterval);
+    swElapsedTime = 0;
+    updateStopwatchDisplay();
+    document.getElementById('btnSwStart').style.display = 'block';
+    document.getElementById('btnSwStop').style.display = 'none';
+    document.getElementById('stopwatchResults').classList.add('hidden');
+    document.getElementById('btnSwUse').classList.add('hidden');
+};
+
+function updateStopwatchDisplay() {
+    const time = new Date(swElapsedTime);
+    const minutes = String(time.getUTCMinutes()).padStart(2, '0');
+    const seconds = String(time.getUTCSeconds()).padStart(2, '0');
+    const milliseconds = String(Math.floor(time.getUTCMilliseconds() / 10)).padStart(2, '0');
+    document.getElementById('stopwatchDisplay').textContent = `${minutes}:${seconds}.${milliseconds}`;
+}
+
+function calculateStopwatchResults() {
+    // Total detik
+    const totalSeconds = swElapsedTime / 1000;
+
+    // Validasi agar tidak infinity jika stop terlalu cepat
+    if (totalSeconds < 0.1) return;
+
+    // SMV Dasar = Durasi / 60
+    const smvDasar = totalSeconds / 60;
+    swResultSmv = parseFloat(smvDasar.toFixed(2)); // Simpan untuk dilempar ke input (2 desimal)
+
+    // Kapasitas per Jam (3600 detik / durasi)
+    const cap100 = Math.round(3600 / totalSeconds);
+    const cap90 = Math.round(cap100 * 0.90);
+    const cap80 = Math.round(cap100 * 0.80);
+    const cap75 = Math.round(cap100 * 0.75);
+
+    // Update UI
+    document.getElementById('swResDuration').textContent = totalSeconds.toFixed(2) + ' detik';
+    document.getElementById('swResSmv').textContent = swResultSmv + ' menit';
+    document.getElementById('swResCap100').textContent = cap100 + ' pcs/jam';
+    document.getElementById('swResCap90').textContent = cap90 + ' pcs/jam';
+    document.getElementById('swResCap80').textContent = cap80 + ' pcs/jam';
+    document.getElementById('swResCap75').textContent = cap75 + ' pcs/jam';
+
+    // Tampilkan hasil
+    document.getElementById('stopwatchResults').classList.remove('hidden');
+    document.getElementById('btnSwUse').classList.remove('hidden');
+}
+
+window.useIeStopwatchResult = function () {
+    const inputActual = document.getElementById('ieActualPublic');
+    if (inputActual) {
+        inputActual.value = swResultSmv; // Masukkan hasil SMV ke input Actual
+
+        // Buat highlight efek pada input agar user notice
+        inputActual.style.transition = "background-color 0.5s ease";
+        inputActual.style.backgroundColor = "rgba(168,85,247,0.2)";
+        setTimeout(() => {
+            inputActual.style.backgroundColor = "";
+        }, 1000);
+    }
+
+    closeIeStopwatch();
+    showToast('success', 'SMV berhasil diterapkan!');
 };

@@ -46,10 +46,12 @@
                     Dashboard Template Sistem</h1>
             </div>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <button id="adminLoginBtn" class="cyber-toggle" title="Admin Hub" onclick="openAdminLoginModal()" style="color: var(--neon-purple); border-color: var(--neon-purple);">
+                <button id="adminLoginBtn" class="cyber-toggle" title="Admin Hub" onclick="openAdminLoginModal()"
+                    style="color: var(--neon-purple); border-color: var(--neon-purple);">
                     <i class="ph ph-shield-check"></i>
                 </button>
-                <button id="desktopToggleBtn" class="cyber-toggle" title="Toggle Desktop View" onclick="toggleDesktopMode()">
+                <button id="desktopToggleBtn" class="cyber-toggle" title="Toggle Desktop View"
+                    onclick="toggleDesktopMode()">
                     <i class="ph ph-monitor"></i>
                 </button>
                 <button id="themeToggleBtn" class="cyber-toggle" title="Core Override (Theme Switcher)">
@@ -76,7 +78,7 @@
                         onclick="document.getElementById('startCameraBtn').click()">
                         <i class="ph ph-magnifying-glass" style="font-size:1.2rem;"></i> Smart Search
                     </button>
-                    <button class="action-btn" id="btnGoPerformance" 
+                    <button class="action-btn" id="btnGoPerformance"
                         style="padding: 0.6rem 1rem; flex: 1; background: rgba(255, 184, 0, 0.1); border: 1px solid #f59e0b; color: #f59e0b;">
                         <i class="ph ph-gauge" style="font-size:1.2rem;"></i> Performance
                     </button>
@@ -186,19 +188,23 @@
                         <i class="ph ph-headset"></i>
                         <span>Support</span>
                     </a>
-                    <div class="nav-card-btn" onclick="document.getElementById('nav-activity').click()" title="Data Logs">
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-activity').click()"
+                        title="Data Logs">
                         <i class="ph ph-terminal-window"></i>
                         <span>Logs</span>
                     </div>
-                    <div class="nav-card-btn" onclick="document.getElementById('startCameraBtn').click()" title="Scanner Override">
+                    <div class="nav-card-btn" onclick="document.getElementById('startCameraBtn').click()"
+                        title="Scanner Override">
                         <i class="ph ph-radar"></i>
                         <span>Scanner</span>
                     </div>
-                    <div class="nav-card-btn" onclick="document.getElementById('nav-inventory').click()" title="Inventory Matrix">
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-inventory').click()"
+                        title="Inventory Matrix">
                         <i class="ph ph-cube"></i>
                         <span>Inventory</span>
                     </div>
-                    <div class="nav-card-btn" onclick="document.getElementById('nav-archive').click()" title="Archive Template">
+                    <div class="nav-card-btn" onclick="document.getElementById('nav-archive').click()"
+                        title="Archive Template">
                         <i class="ph ph-archive"></i>
                         <span>Archive</span>
                     </div>
@@ -215,7 +221,9 @@
                             <div style="color: #f59e0b; font-weight: 700; font-size: 0.9rem; letter-spacing: 1px;">
                                 <i class="ph ph-gauge"></i> PERFORMANCE
                             </div>
-                            <select id="filterMonthPerf" class="smart-input" style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: 24px; width: 120px; margin-top: 0.3rem;" onchange="renderPerformanceStats()">
+                            <select id="filterMonthPerf" class="smart-input"
+                                style="padding: 0.2rem 0.5rem; font-size: 0.7rem; height: 24px; width: 120px; margin-top: 0.3rem;"
+                                onchange="renderPerformanceStats()">
                                 <option value="All">Semua Waktu</option>
                             </select>
                         </div>
@@ -225,12 +233,13 @@
                     </div>
 
                     <!-- SUB-TABS NAVIGATION -->
-                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:0.3rem;">
-                        <button id="btnPerfGeneral" onclick="switchPerfTab('general')" 
+                    <div
+                        style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(245,158,11,0.2); padding-bottom:0.3rem;">
+                        <button id="btnPerfGeneral" onclick="switchPerfTab('general')"
                             style="background:none; border:none; color:#f59e0b; font-weight:700; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid #f59e0b; cursor:pointer; font-family:inherit;">
                             GENERAL STATUS
                         </button>
-                        <button id="btnPerfSaving" onclick="switchPerfTab('saving')" 
+                        <button id="btnPerfSaving" onclick="switchPerfTab('saving')"
                             style="background:none; border:none; color:var(--text-dim); font-weight:600; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit;">
                             SAVING ANALYSIS
                         </button>
@@ -238,10 +247,12 @@
 
                     <!-- PANEL: GENERAL STATUS -->
                     <div id="panelPerfGeneral">
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+                        <div
+                            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
                             <!-- Top Running -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-green);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-green); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-green); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-trend-up"></i> Top Running
                                 </div>
                                 <div id="rankRunning" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -251,7 +262,8 @@
 
                             <!-- Top Not Used -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-red);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-red); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-red); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-warning"></i> Sering Not Used
                                 </div>
                                 <div id="rankNotUsed" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -261,7 +273,8 @@
 
                             <!-- Top No Process -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid var(--text-dim);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--text-dim); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--text-dim); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-minus-circle"></i> Sering No Process
                                 </div>
                                 <div id="rankNoProcess" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -271,7 +284,8 @@
 
                             <!-- Top Request Layout -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid #ea580c;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:#ea580c; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:#ea580c; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-layout"></i> Top Request Layout
                                 </div>
                                 <div id="rankLayoutReq" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -280,15 +294,18 @@
                             </div>
 
                             <!-- Line Tanpa Running -->
-                            <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-purple); grid-column: 1 / -1;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-purple); font-size:0.85rem; font-weight:bold; margin-bottom:0.5rem;">
+                            <div class="glass-card"
+                                style="padding:1rem; border-top:3px solid var(--neon-purple); grid-column: 1 / -1;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-purple); font-size:0.85rem; font-weight:bold; margin-bottom:0.5rem;">
                                     <i class="ph ph-ghost"></i> Line Tanpa Running
                                 </div>
                                 <div style="font-size:0.7rem; color:var(--text-dim); margin-bottom:0.8rem;">
                                     Tidak pernah Running di periode ini — perlu investigasi
                                 </div>
                                 <div id="listLineIdle" style="display:flex; flex-wrap:wrap; gap:0.4rem;">
-                                    <div style="color:var(--neon-green); font-size:0.75rem;">Semua line pernah Running.</div>
+                                    <div style="color:var(--neon-green); font-size:0.75rem;">Semua line pernah Running.
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -296,10 +313,12 @@
 
                     <!-- PANEL: SAVING ANALYSIS -->
                     <div id="panelPerfSaving" class="hidden">
-                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
+                        <div
+                            style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1rem;">
                             <!-- Average Saving % -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-cyan);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-cyan); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-cyan); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-chart-line-up"></i> Consistency (Avg %)
                                 </div>
                                 <div id="rankAvgSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -309,7 +328,8 @@
 
                             <!-- Total Minutes Saved -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid var(--neon-blue);">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-blue); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:var(--neon-blue); font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-hourglass-high"></i> Contribution (Total Min)
                                 </div>
                                 <div id="rankTotalSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -319,7 +339,8 @@
 
                             <!-- Peak Record % -->
                             <div class="glass-card" style="padding:1rem; border-top:3px solid #a855f7;">
-                                <div style="display:flex; align-items:center; gap:0.5rem; color:#a855f7; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
+                                <div
+                                    style="display:flex; align-items:center; gap:0.5rem; color:#a855f7; font-size:0.85rem; font-weight:bold; margin-bottom:1rem;">
                                     <i class="ph ph-lightning"></i> Peak Record (Highest %)
                                 </div>
                                 <div id="rankPeakSaving" style="display:flex; flex-direction:column; gap:0.8rem;">
@@ -345,30 +366,30 @@
                         <span><i class="ph ph-grid-four"></i> Template In-Line Data</span>
                     </h2>
                     <div id="templateCardArea">
-                    <div id="dashboardTableArea" class="table-responsive">
-                        <table id="tblTemplate">
-                            <thead>
-                                <tr>
-                                    <th>Line</th>
-                                    <th>Style</th>
-                                    <th>Proses</th>
-                                    <th>Status</th>
-                                    <th style="min-width:50px; text-align:center;">SMV</th>
-                                    <th style="min-width:50px; text-align:center;">Actual</th>
-                                    <th style="min-width:50px; text-align:center;">Saving</th>
-                                    <th style="min-width:50px; text-align:center;">Rate</th>
-                                    <th style="text-align:center; min-width:70px;">Video B</th>
-                                    <th style="text-align:center; min-width:70px;">Video A</th>
-                                    <th style="text-align:center; min-width:90px;">Timestamp</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td colspan="11" class="text-center">Loading...</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
+                        <div id="dashboardTableArea" class="table-responsive">
+                            <table id="tblTemplate">
+                                <thead>
+                                    <tr>
+                                        <th>Line</th>
+                                        <th>Style</th>
+                                        <th>Proses</th>
+                                        <th>Status</th>
+                                        <th style="min-width:50px; text-align:center;">SMV</th>
+                                        <th style="min-width:50px; text-align:center;">Actual</th>
+                                        <th style="min-width:50px; text-align:center;">Saving</th>
+                                        <th style="min-width:50px; text-align:center;">Rate</th>
+                                        <th style="text-align:center; min-width:70px;">Video B</th>
+                                        <th style="text-align:center; min-width:70px;">Video A</th>
+                                        <th style="text-align:center; min-width:90px;">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="11" class="text-center">Loading...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div><!-- close templateCardArea -->
                 </section>
             </div>
@@ -420,14 +441,15 @@
                                 class="ph ph-arrows-clockwise"></i></button>
                     </div>
                     <h2 class="card-title text-cyan"><i class="ph ph-clipboard-text"></i> Activity Log Dashboard</h2>
-                    
+
                     <!-- SUB-TAB LOG NAVIGATION -->
-                    <div style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.3rem;">
-                        <button id="btnLogIE" onclick="switchLogTab('IE')" 
+                    <div
+                        style="display:flex; gap:0.5rem; margin-bottom:1rem; border-bottom:1px solid rgba(0,191,255,0.2); padding-bottom:0.3rem;">
+                        <button id="btnLogIE" onclick="switchLogTab('IE')"
                             style="background:none; border:none; color:var(--neon-cyan); font-weight:700; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid var(--neon-cyan); cursor:pointer; font-family:inherit;">
                             IE HISTORY
                         </button>
-                        <button id="btnLogSewing" onclick="switchLogTab('Sewing')" 
+                        <button id="btnLogSewing" onclick="switchLogTab('Sewing')"
                             style="background:none; border:none; color:var(--text-dim); font-weight:600; font-size:0.75rem; padding:0.4rem 0.8rem; border-bottom:2px solid transparent; cursor:pointer; font-family:inherit;">
                             SEWING HISTORY
                         </button>
@@ -448,7 +470,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -468,7 +492,9 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="7" class="text-center">Loading...</td></tr>
+                                <tr>
+                                    <td colspan="7" class="text-center">Loading...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -488,37 +514,64 @@
                     <h2 class="card-title text-cyan"><i class="ph ph-package"></i> Inventory Master</h2>
 
                     <!-- Inventory Summary Stats (Compact) -->
-                    <div id="invSummaryDash" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.4rem; margin-bottom:1rem;">
-                        <div class="inv-stat-card" style="background:rgba(79,70,229,0.08); border:1px solid rgba(79,70,229,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Buyer</div>
-                            <div id="invStatBuyerCount" style="font-size:1.1rem; font-weight:800; color:#818cf8;">0</div>
-                            <div id="invStatBuyerList" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                    <div id="invSummaryDash"
+                        style="display:grid; grid-template-columns:repeat(auto-fit, minmax(100px, 1fr)); gap:0.4rem; margin-bottom:1rem;">
+                        <div class="inv-stat-card"
+                            style="background:rgba(79,70,229,0.08); border:1px solid rgba(79,70,229,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div
+                                style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">
+                                Buyer</div>
+                            <div id="invStatBuyerCount" style="font-size:1.1rem; font-weight:800; color:#818cf8;">0
+                            </div>
+                            <div id="invStatBuyerList"
+                                style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
                         </div>
-                        <div class="inv-stat-card" style="background:rgba(0,191,255,0.06); border:1px solid rgba(0,191,255,0.2); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Style Code</div>
-                            <div id="invStatCodeCount" style="font-size:1.1rem; font-weight:800; color:var(--neon-cyan);">0</div>
-                            <div id="invStatCodeDetail" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        <div class="inv-stat-card"
+                            style="background:rgba(0,191,255,0.06); border:1px solid rgba(0,191,255,0.2); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div
+                                style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">
+                                Style Code</div>
+                            <div id="invStatCodeCount"
+                                style="font-size:1.1rem; font-weight:800; color:var(--neon-cyan);">0</div>
+                            <div id="invStatCodeDetail"
+                                style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
                         </div>
-                        <div class="inv-stat-card" style="background:rgba(13,148,136,0.08); border:1px solid rgba(13,148,136,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Proses</div>
-                            <div id="invStatProsesCount" style="font-size:1.1rem; font-weight:800; color:#0d9488;">0</div>
-                            <div id="invStatProsesTotal" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                        <div class="inv-stat-card"
+                            style="background:rgba(13,148,136,0.08); border:1px solid rgba(13,148,136,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div
+                                style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">
+                                Proses</div>
+                            <div id="invStatProsesCount" style="font-size:1.1rem; font-weight:800; color:#0d9488;">0
+                            </div>
+                            <div id="invStatProsesTotal"
+                                style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
                         </div>
-                        <div class="inv-stat-card" style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Size</div>
+                        <div class="inv-stat-card"
+                            style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div
+                                style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">
+                                Size</div>
                             <div id="invStatSizeCount" style="font-size:1.1rem; font-weight:800; color:#a855f7;">0</div>
-                            <div id="invStatSizeList" style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
+                            <div id="invStatSizeList"
+                                style="font-size:0.55rem; color:#94a3b8; margin-top:0.1rem; line-height:1.2;">-</div>
                         </div>
-                        <div class="inv-stat-card" style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
-                            <div style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">Total Qty</div>
+                        <div class="inv-stat-card"
+                            style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:8px; padding:0.5rem; display:flex; flex-direction:column; justify-content:center;">
+                            <div
+                                style="font-size:0.55rem; color:#94a3b8; text-transform:uppercase; letter-spacing:0.5px; font-weight:600;">
+                                Total Qty</div>
                             <div id="invStatTotalQty" style="font-size:1.1rem; font-weight:800; color:#f59e0b;">0</div>
                         </div>
                     </div>
 
                     <div style="margin-bottom:1rem; display:flex; justify-content:flex-start; align-items:center;">
                         <div style="position:relative; width:100%; max-width:350px;">
-                            <i class="ph ph-magnifying-glass" style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-dim); font-size:1.1rem;"></i>
-                            <input type="text" id="inventorySearch" class="smart-input" placeholder="Cari Buyer, Style, atau Proses..." style="width:100%; padding:0.6rem 1rem 0.6rem 35px; border-radius:8px;" oninput="renderTables()">
+                            <i class="ph ph-magnifying-glass"
+                                style="position:absolute; left:12px; top:50%; transform:translateY(-50%); color:var(--text-dim); font-size:1.1rem;"></i>
+                            <input type="text" id="inventorySearch" class="smart-input"
+                                placeholder="Cari Buyer, Style, atau Proses..."
+                                style="width:100%; padding:0.6rem 1rem 0.6rem 35px; border-radius:8px;"
+                                oninput="renderTables()">
                         </div>
                     </div>
 
@@ -559,22 +612,32 @@
 
             <!-- ADMIN PANEL (DEDICATED VIEW) -->
             <div id="view-admin-panel" class="tab-view hidden">
-                <section class="dashboard-card" style="border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(217,70,239,0.15);">
+                <section class="dashboard-card"
+                    style="border-color: var(--neon-purple); box-shadow: 0 0 20px rgba(217,70,239,0.15);">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <button class="cyber-back" onclick="switchView('view-dashboard')" title="Kembali"><i class="ph ph-caret-left"></i></button>
-                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh" style="color:var(--neon-purple); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i class="ph ph-arrows-clockwise"></i></button>
+                        <button class="cyber-back" onclick="switchView('view-dashboard')" title="Kembali"><i
+                                class="ph ph-caret-left"></i></button>
+                        <button class="icon-btn" onclick="forceRefreshData(event)" title="Refresh"
+                            style="color:var(--neon-purple); font-size:1.5rem; background:none; border:none; cursor:pointer;"><i
+                                class="ph ph-arrows-clockwise"></i></button>
                     </div>
-                    <h2 class="card-title" style="color: var(--neon-purple); font-size: 1.5rem; margin-bottom: 2rem;"><i class="ph ph-shield-check"></i> Admin Hub</h2>
+                    <h2 class="card-title" style="color: var(--neon-purple); font-size: 1.5rem; margin-bottom: 2rem;"><i
+                            class="ph ph-shield-check"></i> Admin Hub</h2>
 
                     <!-- Admin Actions -->
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 2rem;">
-                        <button class="action-btn" onclick="openPengumumanModal()" style="flex: 1; padding: 1rem; background: rgba(0,191,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
-                            <i class="ph ph-megaphone" style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i> Set Pengumuman
+                        <button class="action-btn" onclick="openPengumumanModal()"
+                            style="flex: 1; padding: 1rem; background: rgba(0,191,255,0.1); border: 1px solid var(--neon-cyan); color: var(--neon-cyan);">
+                            <i class="ph ph-megaphone"
+                                style="font-size: 2rem; margin-bottom: 0.5rem; display: block;"></i> Set Pengumuman
                         </button>
                     </div>
 
                     <!-- Layout Requests -->
-                    <h3 style="color: var(--neon-purple); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(217,70,239,0.3); padding-bottom: 0.5rem;"><i class="ph ph-bell-ringing"></i> Antrean Layout</h3>
+                    <h3
+                        style="color: var(--neon-purple); font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(217,70,239,0.3); padding-bottom: 0.5rem;">
+                        <i class="ph ph-bell-ringing"></i> Antrean Layout
+                    </h3>
                     <div class="table-responsive" style="margin-bottom: 2rem;">
                         <table id="tblAdminRequest">
                             <thead>
@@ -586,18 +649,25 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="4" class="text-center">Loading...</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center">Loading...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
 
                     <!-- WhatsApp Sharing -->
-                    <h3 style="color: #25d366; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(37,211,102,0.3); padding-bottom: 0.5rem;"><i class="ph ph-whatsapp-logo"></i> Share ke WhatsApp</h3>
+                    <h3
+                        style="color: #25d366; font-size: 1.1rem; margin-bottom: 1rem; border-bottom: 1px solid rgba(37,211,102,0.3); padding-bottom: 0.5rem;">
+                        <i class="ph ph-whatsapp-logo"></i> Share ke WhatsApp
+                    </h3>
                     <div style="display: flex; flex-direction: column; gap: 0.8rem; margin-bottom: 1rem;">
-                        <button class="action-btn" onclick="shareTextWA('ALL')" style="padding: 0.8rem; background: rgba(37,211,102,0.1); border: 1px solid #25d366; color: #25d366; width: 100%;">
+                        <button class="action-btn" onclick="shareTextWA('ALL')"
+                            style="padding: 0.8rem; background: rgba(37,211,102,0.1); border: 1px solid #25d366; color: #25d366; width: 100%;">
                             <i class="ph ph-share-network"></i> Share Semua Template In-Line
                         </button>
-                        <div id="waShareLineContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; width: 100%;">
+                        <div id="waShareLineContainer"
+                            style="display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 0.5rem; width: 100%;">
                             <!-- Diisi oleh JS -->
                         </div>
                     </div>
@@ -761,33 +831,36 @@
                     <!-- 🎥 VIDEO UPLOAD TOOL -->
                     <div class="video-upload-panel" id="videoUploadPanel">
                         <div class="upload-title"><i class="ph ph-video-camera"></i> Upload Video ke Drive</div>
-                        
+
                         <div class="upload-row">
-                            <input type="text" class="upload-input" id="videoUploadName" placeholder="Nama video, misal: seam collar Line 5" autocomplete="off">
+                            <input type="text" class="upload-input" id="videoUploadName"
+                                placeholder="Nama video, misal: seam collar Line 5" autocomplete="off">
                         </div>
-                        
+
                         <div class="upload-row">
                             <label class="upload-file-label" for="videoUploadFile">
                                 <i class="ph ph-file-video"></i> Pilih File
                             </label>
-                            <input type="file" id="videoUploadFile" accept="video/*" style="display:none;" onchange="onVideoFileSelected(this)">
+                            <input type="file" id="videoUploadFile" accept="video/*" style="display:none;"
+                                onchange="onVideoFileSelected(this)">
                             <span class="upload-file-info" id="videoFileInfo">Belum ada file dipilih</span>
                         </div>
-                        
+
                         <div class="upload-row">
                             <button class="upload-btn" id="btnStartUpload" onclick="handleVideoUpload()" disabled>
                                 <i class="ph ph-cloud-arrow-up"></i> Upload
                             </button>
                         </div>
-                        
+
                         <div class="upload-progress-bar" id="uploadProgressBar">
                             <div class="progress-fill" id="uploadProgressFill"></div>
                         </div>
                         <div class="upload-progress-text" id="uploadProgressText"></div>
-                        
+
                         <div class="upload-result-box" id="uploadResultBox">
                             <div class="result-label"><i class="ph ph-check-circle"></i> Upload Berhasil!</div>
-                            <input type="text" class="result-link-input" id="uploadResultLink" readonly onclick="this.select()">
+                            <input type="text" class="result-link-input" id="uploadResultLink" readonly
+                                onclick="this.select()">
                             <div class="result-actions">
                                 <button class="btn-copy-link" id="btnCopyUploadLink" onclick="copyUploadedVideoLink()">
                                     <i class="ph ph-copy"></i> Copy Link
@@ -797,9 +870,10 @@
                                 </button>
                             </div>
                         </div>
-                        
+
                         <div class="upload-history" id="uploadHistoryArea" style="display:none;">
-                            <div class="history-title"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Upload Sesi Ini</div>
+                            <div class="history-title"><i class="ph ph-clock-counter-clockwise"></i> Riwayat Upload Sesi
+                                Ini</div>
                             <div id="uploadHistoryList"></div>
                         </div>
                     </div>
@@ -829,8 +903,9 @@
             <div id="view-search-results" class="tab-view hidden">
                 <section class="dashboard-card">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                        <button class="cyber-back" onclick="document.getElementById('nav-dashboard').click()"
-                            title="Kembali Ke Utama"><i class="ph ph-caret-left"></i></button>
+                        <button class="cyber-back"
+                            onclick="document.getElementById('view-search-results').classList.add('hidden'); document.getElementById('view-dashboard').classList.remove('hidden'); document.getElementById('smartSearchModal').classList.remove('hidden');"
+                            title="Kembali Ke Pencarian"><i class="ph ph-caret-left"></i></button>
                     </div>
                     <h2 class="card-title text-green"><i class="ph ph-magnifying-glass"></i> Hasil Pencarian</h2>
                     <div id="fullPageResultList" style="margin-top:1rem;"></div>
@@ -840,18 +915,28 @@
             <!-- 11. VIEW: ADMIN REQUEST LAYOUT -->
             <div id="view-admin-request" class="tab-view hidden admin-only">
                 <section class="dashboard-card" style="border-color: #dc2626;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 class="card-title" style="margin: 0; color: #dc2626;"><i class="ph ph-bell-ringing"></i> Request Layout (Antrean)</h2>
-                        <button class="action-btn outline-btn" onclick="document.getElementById('nav-dashboard').click()"
-                            style="padding:0.4rem 0.8rem;"><i class="ph ph-arrow-left"></i></button>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="card-title" style="margin: 0; color: #dc2626;"><i class="ph ph-bell-ringing"></i>
+                            Request Layout (Antrean)</h2>
+                        <button class="action-btn outline-btn"
+                            onclick="document.getElementById('nav-dashboard').click()" style="padding:0.4rem 0.8rem;"><i
+                                class="ph ph-arrow-left"></i></button>
                     </div>
                     <div class="table-responsive">
                         <table id="tblAdminRequest">
                             <thead>
-                                <tr><th>Jam</th><th>Line</th><th>Style</th><th>Aksi</th></tr>
+                                <tr>
+                                    <th>Jam</th>
+                                    <th>Line</th>
+                                    <th>Style</th>
+                                    <th>Aksi</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="4" class="text-center">Memuat data live dari server...</td></tr>
+                                <tr>
+                                    <td colspan="4" class="text-center">Memuat data live dari server...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -861,18 +946,30 @@
             <!-- 12. VIEW: ADMIN REPORT -->
             <div id="view-admin-report" class="tab-view hidden admin-only">
                 <section class="dashboard-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <h2 class="card-title text-cyan" style="margin:0;"><i class="ph ph-chart-bar"></i> Laporan Produksi & Log</h2>
-                        <button class="action-btn outline-btn" onclick="document.getElementById('nav-dashboard').click()"
-                            style="padding:0.4rem 0.8rem;"><i class="ph ph-arrow-left"></i></button>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 class="card-title text-cyan" style="margin:0;"><i class="ph ph-chart-bar"></i> Laporan
+                            Produksi & Log</h2>
+                        <button class="action-btn outline-btn"
+                            onclick="document.getElementById('nav-dashboard').click()" style="padding:0.4rem 0.8rem;"><i
+                                class="ph ph-arrow-left"></i></button>
                     </div>
                     <div class="table-responsive">
                         <table id="tblAdminReport">
                             <thead>
-                                <tr><th>Waktu Selesai</th><th>Line</th><th>Style</th><th>Proses</th><th>Actual</th><th>Durasi</th></tr>
+                                <tr>
+                                    <th>Waktu Selesai</th>
+                                    <th>Line</th>
+                                    <th>Style</th>
+                                    <th>Proses</th>
+                                    <th>Actual</th>
+                                    <th>Durasi</th>
+                                </tr>
                             </thead>
                             <tbody>
-                                <tr><td colspan="6" class="text-center">Memuat data live dari server...</td></tr>
+                                <tr>
+                                    <td colspan="6" class="text-center">Memuat data live dari server...</td>
+                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -951,12 +1048,21 @@
                         <option value="Hugo Boss">Hugo Boss</option>
                         <option value="J.JIL">J.JIL</option>
                         <option value="BONOBOS">BONOBOS</option>
+                        <option value="Vineyard Vines">Vineyard Vines</option>
                     </select>
                 </div>
                 <div class="form-group mt-3">
                     <label>Pencarian Pintar (Style Code / Proses)</label>
                     <input type="text" id="smartSearchInputModal" class="smart-input"
                         placeholder="Masukkan kode style atau nama proses...">
+                </div>
+                <div class="form-group mt-2"
+                    style="display:flex; align-items:center; gap:0.5rem; background:rgba(0,191,255,0.1); padding:0.8rem; border-radius:6px; border:1px solid rgba(0,191,255,0.3);">
+                    <input type="checkbox" id="chkAllStyle"
+                        style="width:1.2rem; height:1.2rem; accent-color:var(--neon-cyan); cursor:pointer;">
+                    <label for="chkAllStyle"
+                        style="margin-bottom:0; cursor:pointer; font-weight:bold; color:var(--neon-cyan);">All Style
+                        Code</label>
                 </div>
                 <button id="execSearchBtn" class="action-btn outline-btn w-full mt-4">Jalankan Pencarian</button>
             </div>
@@ -1099,7 +1205,13 @@
                 <input type="number" id="ieSmvPublic" class="form-control" placeholder="Contoh: 12.5" step="0.01">
             </div>
             <div class="form-group pt-2">
-                <label>Actual / Realisasi</label>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <label style="margin-bottom: 0;">Actual / Realisasi</label>
+                    <button type="button" class="action-btn outline-btn" onclick="openIeStopwatch()"
+                        style="padding: 0.2rem 0.6rem; font-size: 0.65rem; border-color: #a855f7; color: #a855f7;">
+                        <i class="ph ph-timer"></i> Stopwatch IE
+                    </button>
+                </div>
                 <input type="number" id="ieActualPublic" class="form-control" placeholder="Contoh: 12.0" step="0.01">
             </div>
             <div class="form-group pt-2">
@@ -1164,11 +1276,14 @@
             </div>
             <div class="form-group">
                 <label>Teks Pengumuman Berjalan</label>
-                <input type="text" id="adminPengumuman" class="smart-input" placeholder="Teks akan muncul di semua klien...">
+                <input type="text" id="adminPengumuman" class="smart-input"
+                    placeholder="Teks akan muncul di semua klien...">
             </div>
             <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
-                <button class="action-btn primary-btn" style="flex: 1;" onclick="setPengumuman()"><i class="ph ph-paper-plane-right"></i> Kirim</button>
-                <button class="action-btn outline-btn" style="flex: 1; border-color: #ef4444; color: #ef4444;" onclick="stopPengumuman()"><i class="ph ph-stop-circle"></i> Matikan</button>
+                <button class="action-btn primary-btn" style="flex: 1;" onclick="setPengumuman()"><i
+                        class="ph ph-paper-plane-right"></i> Kirim</button>
+                <button class="action-btn outline-btn" style="flex: 1; border-color: #ef4444; color: #ef4444;"
+                    onclick="stopPengumuman()"><i class="ph ph-stop-circle"></i> Matikan</button>
             </div>
         </div>
     </div>
@@ -1183,7 +1298,7 @@
             <form id="adminEditForm" onsubmit="saveAdminEdit(event)">
                 <input type="hidden" id="adminEditSheet">
                 <input type="hidden" id="adminEditRowIndex">
-                
+
                 <div class="form-group">
                     <label>Line</label>
                     <input type="text" id="adminEditLine" class="smart-input" required>
@@ -1207,8 +1322,76 @@
                         <option value="No Process">No Process</option>
                     </select>
                 </div>
-                <button type="submit" class="action-btn primary-btn w-full mt-4" style="background: rgba(0,255,136,0.1); border-color: var(--neon-green); color: var(--neon-green);"><i class="ph ph-floppy-disk"></i> Simpan Perubahan</button>
+                <button type="submit" class="action-btn primary-btn w-full mt-4"
+                    style="background: rgba(0,255,136,0.1); border-color: var(--neon-green); color: var(--neon-green);"><i
+                        class="ph ph-floppy-disk"></i> Simpan Perubahan</button>
             </form>
+        </div>
+    </div>
+
+    <!-- MODAL 6: IE STOPWATCH -->
+    <div id="modalIeStopwatch" class="modal hidden">
+        <div class="modal-content" style="max-width: 380px; border: 1px solid #a855f7; text-align: center;">
+            <div class="modal-header">
+                <h3 style="color: #a855f7;"><i class="ph ph-timer"></i> IE Time Study</h3>
+                <button class="close-modal" onclick="closeIeStopwatch()"><i class="ph ph-x"></i></button>
+            </div>
+
+            <div id="stopwatchDisplay"
+                style="font-size: 3.5rem; font-family: monospace; font-weight: bold; color: var(--neon-cyan); margin: 1.5rem 0; letter-spacing: 2px;">
+                00:00.00
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; justify-content: center; margin-bottom: 1.5rem;">
+                <button id="btnSwStart" class="action-btn" onclick="startIeStopwatch()"
+                    style="background: rgba(16,185,129,0.1); border: 1px solid #10b981; color: #10b981; flex: 1;">
+                    <i class="ph ph-play"></i> Start
+                </button>
+                <button id="btnSwStop" class="action-btn" onclick="stopIeStopwatch()"
+                    style="background: rgba(239,68,68,0.1); border: 1px solid #ef4444; color: #ef4444; flex: 1; display: none;">
+                    <i class="ph ph-stop"></i> Stop
+                </button>
+                <button id="btnSwReset" class="action-btn" onclick="resetIeStopwatch()"
+                    style="background: rgba(245,158,11,0.1); border: 1px solid #f59e0b; color: #f59e0b; flex: 1;">
+                    <i class="ph ph-arrow-counter-clockwise"></i> Reset
+                </button>
+            </div>
+
+            <div id="stopwatchResults" class="hidden"
+                style="text-align: left; background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; border: 1px solid rgba(168,85,247,0.3); margin-bottom: 1rem;">
+                <h4
+                    style="color: #a855f7; font-size: 0.85rem; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(168,85,247,0.2); padding-bottom: 0.4rem;">
+                    📊 Hasil Kalkulasi</h4>
+                <div
+                    style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem; margin-bottom: 0.5rem;">
+                    <div style="color: var(--text-dim);">Waktu Durasi:</div>
+                    <div style="font-weight: bold; color: var(--neon-cyan);" id="swResDuration">-</div>
+
+                    <div style="color: var(--text-dim);">SMV Dasar (Menit):</div>
+                    <div style="font-weight: bold; color: #f59e0b;" id="swResSmv">-</div>
+                </div>
+
+                <h4 style="color: var(--neon-cyan); font-size: 0.75rem; margin-top: 1rem; margin-bottom: 0.5rem;">
+                    Kapasitas per Jam (Output/Hour)</h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.8rem;">
+                    <div style="color: var(--text-dim);">Target 100%:</div>
+                    <div style="font-weight: bold; color: #10b981;" id="swResCap100">-</div>
+
+                    <div style="color: var(--text-dim);">Target 90%:</div>
+                    <div style="font-weight: bold; color: #3b82f6;" id="swResCap90">-</div>
+
+                    <div style="color: var(--text-dim);">Target 80%:</div>
+                    <div style="font-weight: bold; color: #ef4444;" id="swResCap80">-</div>
+
+                    <div style="color: var(--text-dim);">Target 75%:</div>
+                    <div style="font-weight: bold; color: #f97316;" id="swResCap75">-</div>
+                </div>
+            </div>
+
+            <button id="btnSwUse" class="action-btn w-full hidden" onclick="useIeStopwatchResult()"
+                style="background: var(--neon-purple); color: white; margin-top: 0.5rem;">
+                <i class="ph ph-magic-wand"></i> Gunakan SMV Ini
+            </button>
         </div>
     </div>
 

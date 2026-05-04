@@ -2,7 +2,7 @@
 // SERVICE WORKER — Dashboard Template PWA
 // Versi cache: update angka jika ada file baru
 // ============================================
-const CACHE_NAME = 'dashboard-template-v3';
+const CACHE_NAME = 'dashboard-template-v6';
 
 // File-file yang akan disimpan untuk offline
 const ASSETS_TO_CACHE = [

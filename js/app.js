@@ -109,6 +109,69 @@ async function loadAllDataFallback() {
         // Suntikkan seluruh data memori langsung dari Awan (Cloud)
         allData = data;
 
+        // --- FIX BACKEND SHIFT UNTUK ARCHIVE TEMPLATE ---
+        // Sheet Archive Template tidak memiliki kolom "Line" di Col A.
+        // Akibatnya, Backend menggeser semua properti (Col A terbaca sebagai line, Col B sbg style, dst).
+        if (allData.archiveTemplate && allData.archiveTemplate.length > 0) {
+            allData.archiveTemplate.forEach(r => {
+                // Kita perbaiki pergeseran propertinya secara manual
+                const realStyle = r.line;
+                const realProses = r.style;
+                const realStatus = r.proses;
+                const realSmv = r.status;
+                const realActual = r.smv;
+                const realSaving = r.actual;
+                const realRate = r.saving;
+                const realVideoB = r.rate;
+                // Asumsi backend menaruh video A di videoB dan timestamp di videoA karena bergeser
+                const realVideoA = r.videoB || r['vidio before'];
+                const realTimestamp = r.videoA || r['vidio after'];
+
+                r.style = realStyle;
+                r.proses = realProses;
+                r.status = realStatus;
+                r.smv = realSmv;
+                r.actual = realActual;
+                r.saving = realSaving;
+                r.rate = realRate;
+                r.videoB = realVideoB;
+                r.videoA = realVideoA;
+                r.timestamp = realTimestamp;
+                r.line = ''; // Archive template tidak butuh line
+            });
+        }
+
+        // --- KEY NORMALIZATION ---
+        // Menstandarkan key dari Apps Script (misal: "vidio before", "Timestamp ")
+        const normalizeKeys = (arr) => {
+            if (!arr || !Array.isArray(arr)) return;
+            arr.forEach(r => {
+                const keys = Object.keys(r);
+                keys.forEach(k => {
+                    const lowK = k.toLowerCase().trim();
+                    if (lowK === 'vidio before' || lowK === 'video before' || lowK === 'vidiobefore' || lowK === 'videobefore') {
+                        r.videoB = r[k];
+                    }
+                    if (lowK === 'vidio after' || lowK === 'video after' || lowK === 'vidioafter' || lowK === 'videoafter') {
+                        r.videoA = r[k];
+                    }
+                    if (lowK === 'timestamp') {
+                        r.timestamp = r[k];
+                    }
+                    if (lowK === 'style code') {
+                        r.style = r[k];
+                    }
+                });
+            });
+        };
+        
+        if (allData.templateInLine) normalizeKeys(allData.templateInLine);
+        if (allData.archiveTemplate) normalizeKeys(allData.archiveTemplate);
+        if (allData.archiveProduction) normalizeKeys(allData.archiveProduction);
+        if (allData.factoryA) Object.values(allData.factoryA).forEach(arr => normalizeKeys(arr));
+        if (allData.factoryB) Object.values(allData.factoryB).forEach(arr => normalizeKeys(arr));
+        if (allData.inventory) normalizeKeys(allData.inventory);
+
         // --- DATA INHERITANCE (PEWARISAN DATA) ---
         // Jika baris di bawahnya kosong untuk Line, Style, atau Buyer, maka ikut baris di atasnya
         const applyInheritance = (arr) => {
@@ -178,10 +241,38 @@ async function loadAllDataFallback() {
         if (allData.archiveTemplate) correctBuyer(allData.archiveTemplate);
         if (allData.factoryA) Object.values(allData.factoryA).forEach(arr => correctBuyer(arr));
         if (allData.factoryB) Object.values(allData.factoryB).forEach(arr => correctBuyer(arr));
+        // --- AUTO-INHERIT FROM ARCHIVE TEMPLATE ---
+        // Jika data di templateInLine tidak punya smv/actual, ambil dari archiveTemplate berdasarkan style dan proses
+        if (allData.templateInLine && allData.archiveTemplate) {
+            allData.templateInLine.forEach(r => {
+                const currentSmv = parseFloat(String(r.smv || '0').replace(',', '.'));
+                if (isNaN(currentSmv) || currentSmv <= 0) {
+                    const styleKey = String(r.style || r.code || '').toLowerCase().trim();
+                    const prosesKey = String(r.proses || '').toLowerCase().trim();
+                    
+                    if (styleKey && prosesKey) {
+                        // Cari dari belakang agar mendapat data terupdate jika ada duplikat historis
+                        const archMatch = allData.archiveTemplate.slice().reverse().find(a => 
+                            String(a.style || '').toLowerCase().trim() === styleKey &&
+                            String(a.proses || '').toLowerCase().trim() === prosesKey &&
+                            parseFloat(String(a.smv || '0').replace(',', '.')) > 0
+                        );
+                        
+                        if (archMatch) {
+                            r.smv = archMatch.smv;
+                            r.actual = archMatch.actual;
+                            r.videoB = archMatch.videoB || r.videoB;
+                            r.videoA = archMatch.videoA || r.videoA;
+                        }
+                    }
+                }
+            });
+        }
 
         // --- DYNAMIC IE CALCULATION (Front-end only) ---
-        if (allData.templateInLine) {
-            allData.templateInLine.forEach(r => {
+        const calcIE = (arr) => {
+            if (!arr || !Array.isArray(arr)) return;
+            arr.forEach(r => {
                 let smv = parseFloat(String(r.smv || '0').replace(',', '.')) || 0;
                 let actual = parseFloat(String(r.actual || '0').replace(',', '.')) || 0;
                 if (smv > 0) {
@@ -195,7 +286,11 @@ async function loadAllDataFallback() {
                     r.rate = '';
                 }
             });
-        }
+        };
+
+        if (allData.templateInLine) calcIE(allData.templateInLine);
+        if (allData.archiveTemplate) calcIE(allData.archiveTemplate);
+        if (allData.archiveProduction) calcIE(allData.archiveProduction);
 
         // Simpan ke Cache Browser agar waktu memuat aplikasi untuk besok/nanti 0 detik
         // Hapus cache lama dulu agar data inheritance yang sudah diperbaiki tersimpan bersih
@@ -385,7 +480,7 @@ function updateStatusCards() {
         if (raw) {
             displayLine = /line/i.test(raw) ? raw : `Line ${raw}`;
         }
-        if (st.includes('not used')) {
+        if (st.includes('not used') || st.includes('no used')) {
             if (displayLine) notUsedLines.push(displayLine);
         } else if (st.includes('no process')) {
             if (displayLine) noProcessLines.push(displayLine);
@@ -394,9 +489,12 @@ function updateStatusCards() {
         }
 
         // IE Aggregation (bersihkan koma agar desimal terbaca akurat)
-        sumSmv += parseFloat(String(r.smv || '0').replace(',', '.')) || 0;
-        sumActual += parseFloat(String(r.actual || '0').replace(',', '.')) || 0;
-        sumSaving += parseFloat(String(r.saving || '0').replace(',', '.')) || 0;
+        // JANGAN akumulasikan jika statusnya 'no used' / 'not used'
+        if (!st.includes('no used') && !st.includes('not used')) {
+            sumSmv += parseFloat(String(r.smv || '0').replace(',', '.')) || 0;
+            sumActual += parseFloat(String(r.actual || '0').replace(',', '.')) || 0;
+            sumSaving += parseFloat(String(r.saving || '0').replace(',', '.')) || 0;
+        }
     });
 
     // RATE = running / (running + not_used) * 100
@@ -623,18 +721,29 @@ function renderTables() {
                 ? `<button class="video-pill video-pill-after" onclick="openVideoPlayer('${escapeHtml(row.videoA)}','Video After — ${escapeHtml(row.style || '')}')" title="Putar Video After"><i class="ph ph-play-circle"></i> Play</button>`
                 : `<span style="color:var(--text-dim);">&#8212;</span>`;
 
-            return `<tr>
-                <td style="font-weight:bold; color:var(--neon-cyan);">${showLine}</td>
-                <td style="font-weight:500;">${showStyle}</td>
-                <td>${row.proses || ''}</td>
+            // Styling khusus untuk baris dengan status 'no used' atau 'not used'
+            const statusLcw = String(row.status || '').toLowerCase();
+            const isNoUsed = statusLcw.includes('no used') || statusLcw.includes('not used');
+            
+            const lineCol = isNoUsed ? 'var(--neon-blue)' : 'var(--neon-cyan)';
+            const smvCol = isNoUsed ? 'var(--neon-blue)' : 'var(--neon-blue)';
+            const savCol = isNoUsed ? 'var(--neon-blue)' : sCol;
+            const dimCol = isNoUsed ? 'var(--neon-blue)' : 'var(--text-dim)';
+            const textColor = isNoUsed ? 'color:var(--neon-blue);' : '';
+            const rowBg = isNoUsed ? 'background: rgba(0, 191, 255, 0.08);' : '';
+
+            return `<tr style="${rowBg}">
+                <td style="font-weight:bold; color:${lineCol};">${showLine}</td>
+                <td style="font-weight:500; ${textColor}">${showStyle}</td>
+                <td style="${textColor}">${row.proses || ''}</td>
                 <td><span class="badge ${getStatusBadge(row.status || '')}">${row.status || ''}</span></td>
-                <td style="text-align:center;color:var(--neon-blue);font-weight:500;">${row.smv || '-'}</td>
-                <td style="text-align:center;">${row.actual || '-'}</td>
-                <td style="text-align:center;font-weight:bold;color:${sCol};">${sStr}</td>
-                <td style="text-align:center;">${rStr}</td>
+                <td style="text-align:center;font-weight:500;color:${smvCol};">${row.smv || '-'}</td>
+                <td style="text-align:center;${textColor}">${row.actual || '-'}</td>
+                <td style="text-align:center;font-weight:bold;color:${savCol};">${sStr}</td>
+                <td style="text-align:center;${textColor}">${rStr}</td>
                 <td style="text-align:center;">${vBCell}</td>
                 <td style="text-align:center;">${vACell}</td>
-                <td style="text-align:center;font-size:0.65rem;color:var(--text-dim);">${tsStr}</td>
+                <td style="text-align:center;font-size:0.65rem;color:${dimCol};">${tsStr}</td>
             </tr>`;
         }).join('');
     }
@@ -2709,7 +2818,7 @@ window.renderArchiveProductionTable = function () {
     const selectedDate = filterDate ? filterDate.value : ''; // Format yyyy-mm-dd
 
     const rows = (allData.archiveProduction || []).filter(r =>
-        (r.line || '').trim() !== '' || (r.style || '').trim() !== ''
+        (r.line || '').trim() !== '' || (r.style || r.code || '').trim() !== ''
     );
 
     // Populate Line filter dropdown (hanya sekali)
@@ -2754,26 +2863,11 @@ window.renderArchiveProductionTable = function () {
         return;
     }
 
-    let lastLine = null;
-    let lastStyle = null;
-
     tbody.innerHTML = filtered.map(row => {
         const curLine = (row.line || '').toString().trim();
-        const curStyle = (row.style || '').toString().trim();
+        const curStyle = (row.style || row.code || '').toString().trim();
         let showLine = curLine;
         let showStyle = curStyle;
-
-        if (curLine === lastLine) {
-            showLine = "";
-            if (curStyle === lastStyle) {
-                showStyle = "";
-            } else {
-                lastStyle = curStyle;
-            }
-        } else {
-            lastLine = curLine;
-            lastStyle = curStyle;
-        }
 
         const sVal = parseFloat(String(row.saving || '0').replace(',', '.'));
         const sNum = isNaN(sVal) ? 0 : sVal;
@@ -2804,7 +2898,7 @@ window.renderArchiveTemplateTable = function () {
     if (!tbody) return;
 
     const rows = (allData.archiveTemplate || []).filter(r =>
-        (r.line || '').trim() !== '' || (r.style || '').trim() !== ''
+        (r.line || '').trim() !== '' || (r.style || r.code || '').trim() !== ''
     );
 
     // Hitung Total untuk Kartu Ringkasan
@@ -2827,24 +2921,16 @@ window.renderArchiveTemplateTable = function () {
         return;
     }
 
-    // Urutkan berdasarkan Style (A-Z)
-    rows.sort((a, b) => (a.style || '').localeCompare(b.style || ''));
+    // Urutkan berdasarkan Style/Code (A-Z)
+    rows.sort((a, b) => (a.style || a.code || '').localeCompare(b.style || b.code || ''));
 
     const vLink = (url, label, color, bg) => url
         ? `<button class="video-pill ${label === 'Before' ? 'video-pill-before' : 'video-pill-after'}" onclick="openVideoPlayer('${url.replace(/'/g, "\\'")}','${label}')" title="Putar ${label}"><i class="ph ph-play-circle"></i> ${label}</button>`
         : `<span style="color:var(--text-dim);font-size:0.7rem;">&#8212;</span>`;
 
-    let lastStyle = null;
-
     tbody.innerHTML = rows.map(row => {
-        const curStyle = (row.style || '').toString().trim();
+        const curStyle = (row.style || row.code || '').toString().trim();
         let showStyle = curStyle;
-
-        if (curStyle === lastStyle) {
-            showStyle = "";
-        } else {
-            lastStyle = curStyle;
-        }
 
         const sVal = parseFloat(String(row.saving || '0').replace(',', '.'));
         const sNum = isNaN(sVal) ? 0 : sVal;
